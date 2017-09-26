@@ -1,0 +1,45 @@
+﻿"ts" ... datastream timestamp ... xxx resolve
+"s" ... stream error check ... 0 ...all OK
+"eye" ... value left or right
+
+variable:
+"pc" ... pupil center ... The property pc is specified in 3D coordinates with origo in the scenecam. This can be used to compare the eye position
+with the tracksphere from the status report in the 8 REST API, page 17. The value is sent separately for each eye and the
+coordinates are in mm.
+"pd" ... pupil diameter ... The pupil diameter is measured in mm and sent separately for each eye
+"gd" ... gaze direction ... The gaze direction is a unit vector with origo in the pupil center
+"gp3" ... GazePosition3d is the 3D position, in mm, relative to the scene camera where the gaze is focused
+"gy" ... MEMS gyroscope info ... The gyroscope data indicates the rotation of the glasses. The gyroscope data has the unit degrees per second [°/s]. It is activated from firmware version 1.1.0.
+"ac" ... MEMS accelerometer info ... The accelerometer data indicates the rotation of the glasses. The accelerometer data has the unit meter per second squared [m/s²]. When the glasses are stationary, the value of the ac property will be approximately [0, -9,82, 0]. It is activated from
+firmware version 1.1.0.
+
+
+all different
+
+"ts", "s", "gp", "l"
+"gp" ... Gaze Position ... The gaze position is the position on the scene
+camera image where the gaze will be projected.
+Top left corner is (0,0), bottom right corner is
+(1,1).
+"l" ... Gaze Position
+
+"ts", "s", "pts", "pv"
+"pts" ... PTS sync package ... The pts sync package is used to get the offset between the PTS time in the video to the TS time that is used in TSLV and
+JSON-files. “pv” is the “pipeline version” and will change every time the pipeline is restarted for some reason (and the PTS
+values have to be reset). The pts property value has a resolution of 90 kHz in relation to the TS time since the video pipeline
+started.
+"pv": 0/1
+
+
+"ts", "s", "dir", "sig"
+"sig" ... 0/1
+"dir" ... Sync-port signal package ... This sync package contains a log of signals sent. The example below "dir" indicates the direction, which can be "in" or "out". "sig" indicates a signal where 1 means a 3.3 V signal on the port and 0 means a 0.0 V signal.
+
+nix.File
+nix.Block … “experiment”
+nix.Group … name “eeg”
+nix.Group … name “eye tracker”
+
+nix.DataArray … eeg
+
+
