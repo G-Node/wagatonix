@@ -257,7 +257,6 @@ def write_tobii_gaze_dir_eye(b, tobii_data, tobii_offset, eye):
         combined.append([coord[0], coord[1], coord[2], e["s"]])
 
     da = b.create_data_array("gaze direction " + eye, "nix.tobii.property", data=combined)
-    da.unit = "mm"
     da.label = "gaze direction"
     da.description = "The timestamp has been modified by an offset of -" + str(tobii_offset)
 
