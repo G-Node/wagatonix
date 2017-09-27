@@ -46,3 +46,5 @@ g.data_arrays.append(da_left.id)
 
 da_right = write_tobii_pupil_center_eye(b, tobii_data, tobii_offset, "right")
 g.data_arrays.append(da_right.id)
+
+f.close()
