@@ -35,7 +35,7 @@ dim.unit = "us"
 dim.label = "timestamp"
 
 dim = da.append_set_dimension()
-dim.labels = ["pipe version", "error"]
+dim.labels = ["pipe timestamp", "pipe version", "error"]
 
 g.data_arrays.append(da.id)
 
