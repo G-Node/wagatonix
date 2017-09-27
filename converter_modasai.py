@@ -91,6 +91,7 @@ def write_channel_data(block, data, time, sr):
         sec = write_channel_metadata(hw, "channel %d" % (ch + 1), 100+ch)
         da.metadata = sec
         group.data_arrays.append(da)
+
     return group
 
 
@@ -157,7 +158,7 @@ def determine_offsets(time, trigger, tobii_data):
     '''
     trigger_on_erg = np.logical_and(np.diff(trigger) > 1, np.diff(trigger) < 5)
     trigger_off_erg = np.logical_and(np.diff(trigger) < -1, np.diff(trigger) > -5)
-    sync_trigger_tobii = filter(lambda y: y["dir"] == "out", filter(lambda x: x.has_key("dir"), tobii_data))[6]
+    # sync_trigger_tobii = filter(lambda y: y["dir"] == "out", filter(lambda x: x.__contains__("dir"), tobii_data))
     sync_trigger_eeg = time[np.where(trigger_on_erg)[0][1]]
     return sync_trigger_eeg, sync_trigger_eeg
 
@@ -167,22 +168,27 @@ def convert(time, trigger, data, parts, sr, tobii_data, metadatafile, eeg_offset
 
     # handle eeg data
     b = f.create_block(parts[0], "nix.recording.session")
-    write_session_metadata(f, b, metadatafile)
+
+    # TODO use session metadata
+    #write_session_metadata(f, b, metadatafile)
+
     # TODO handle eeg offset
-    g = write_channel_data(b, data, time, sr)
-    write_trigger_signal(b, trigger, time, g)
-    save_events(b, trigger, g)
+    # TODO fix eeg export errors
+    # g = write_channel_data(b, data, time, sr)
+    # write_trigger_signal(b, trigger, time, g)
+    # save_events(b, trigger, g)
 
     # handle tobii data
     tobii_group = write_tobii_data(b, tobii_data, tobii_offset)
 
+    f.flush()
     f.close()
 
 
 def write_tobii_data(b, tobii_data, tobii_offset):
     group = b.create_group("tobii data", "nix.tobii")
 
-    write_tobii_pupil_center(b, g, tobii_data, tobii_offset)
+    write_tobii_pupil_center(b, group, tobii_data, tobii_offset)
 
     return group
 
@@ -228,7 +234,7 @@ def load_data(filename):
     name, ext = os.path.splitext(full_name)
     file_parts = name.split("_")
     pattern = "_".join(file_parts[:-1])
-    files = glob.glob(os.path.join(folder, pattern + "*"))
+    files = glob.glob(os.path.join(folder, pattern + "*.mat"))
     combined_data = None
     for f in files:
         data = scio.matlab.loadmat(f)
@@ -255,7 +261,7 @@ def load_tobii_data(filename):
     :return: json python object
     '''
     fp = open(filename)
-    livedata_json = [json.loads(e) for e in fp.readlines()]
+    return [json.loads(e) for e in fp.readlines()]
 
 
 def main():
@@ -264,7 +270,7 @@ def main():
     parser.add_argument('-m','--meta-data',  dest='metadatafile', metavar='STR', type=str, default='', required=True, help='Meta-data file')
     parser.add_argument('-t','--tobii-data',  dest='tobiifile', metavar='STR', type=str, default='', required=False, help='Tobii-data file')
     parser.add_argument('-e', '--eeg-offset', dest='eeg_offset', metavar='STR', type=str, default='', required=False, help='Offset for the eeg')
-    parser.add_argument('-e', '--tobii-offset', dest='tobii_offset', metavar='STR', type=str, default='', required=False, help='Offset for the tobii')
+    parser.add_argument('-o', '--tobii-offset', dest='tobii_offset', metavar='STR', type=str, default='', required=False, help='Offset for the tobii')
     # parser.add_argument("trigger_csv")
     # parser.add_argument("order")
 
