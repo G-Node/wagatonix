@@ -6,7 +6,8 @@ import os
 
 
 def write_tobii_pupil_diameter_eye(b, tobii_data, tobii_offset, eye):
-    filtered = filter(lambda y: y["eye"] == eye, filter(lambda x: x.__contains__("pd"), tobii_data))
+    prop = "pd"
+    filtered = filter(lambda y: y["eye"] == eye, filter(lambda x: x.__contains__(prop), tobii_data))
     tobii_pc_data = sorted(filtered, key=operator.itemgetter("ts"))
 
     ts = []
@@ -14,7 +15,7 @@ def write_tobii_pupil_diameter_eye(b, tobii_data, tobii_offset, eye):
     for e in tobii_pc_data:
         # apply offset to timestamp
         ts.append(e["ts"] - tobii_offset)
-        combined.append([e["pd"], e["s"]])
+        combined.append([e[prop], e["s"]])
 
     da = b.create_data_array("pupil diameter " + eye, "nix.tobii.property", data=combined)
     da.unit = "mm"

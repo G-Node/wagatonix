@@ -215,7 +215,8 @@ def write_tobii_gaze_dir(b, g, tobii_data, tobii_offset):
 
 
 def write_tobii_gaze_dir_eye(b, tobii_data, tobii_offset, eye):
-    filtered = filter(lambda y: y["eye"] == eye, filter(lambda x: x.__contains__("gd"), tobii_data))
+    prop = "gd"
+    filtered = filter(lambda y: y["eye"] == eye, filter(lambda x: x.__contains__(prop), tobii_data))
     tobii_pc_data = sorted(filtered, key=operator.itemgetter("ts"))
 
     ts = []
@@ -223,7 +224,7 @@ def write_tobii_gaze_dir_eye(b, tobii_data, tobii_offset, eye):
     for e in tobii_pc_data:
         # apply offset to timestamp
         ts.append(e["ts"] - tobii_offset)
-        coord = e["gd"]
+        coord = e[prop]
         combined.append([coord[0], coord[1], coord[2], e["s"]])
 
     da = b.create_data_array("gaze direction " + eye, "nix.tobii.property", data=combined)
@@ -250,7 +251,8 @@ def write_tobii_pupil_center(b, g, tobii_data, tobii_offset):
 
 
 def write_tobii_pupil_center_eye(b, tobii_data, tobii_offset, eye):
-    filtered = filter(lambda y: y["eye"] == eye, filter(lambda x: x.__contains__("pc"), tobii_data))
+    prop = "pc"
+    filtered = filter(lambda y: y["eye"] == eye, filter(lambda x: x.__contains__(prop), tobii_data))
     tobii_pc_data = sorted(filtered, key=operator.itemgetter("ts"))
 
     ts = []
@@ -258,7 +260,7 @@ def write_tobii_pupil_center_eye(b, tobii_data, tobii_offset, eye):
     for e in tobii_pc_data:
         # apply tobii offset to timestamp
         ts.append(e["ts"] - tobii_offset)
-        coord = e["pc"]
+        coord = e[prop]
         combined.append([coord[0], coord[1], coord[2], e["s"]])
 
     da = b.create_data_array("pupil center " + eye, "nix.tobii.property", data=combined)
@@ -285,7 +287,8 @@ def write_tobii_pupil_diameter(b, g, tobii_data, tobii_offset):
 
 
 def write_tobii_pupil_diameter_eye(b, tobii_data, tobii_offset, eye):
-    filtered = filter(lambda y: y["eye"] == eye, filter(lambda x: x.__contains__("pd"), tobii_data))
+    prop = "pd"
+    filtered = filter(lambda y: y["eye"] == eye, filter(lambda x: x.__contains__(prop), tobii_data))
     tobii_pc_data = sorted(filtered, key=operator.itemgetter("ts"))
 
     ts = []
@@ -293,7 +296,7 @@ def write_tobii_pupil_diameter_eye(b, tobii_data, tobii_offset, eye):
     for e in tobii_pc_data:
         # apply offset to timestamp
         ts.append(e["ts"] - tobii_offset)
-        combined.append([e["pd"], e["s"]])
+        combined.append([e[prop], e["s"]])
 
     da = b.create_data_array("pupil diameter " + eye, "nix.tobii.property", data=combined)
     da.unit = "mm"

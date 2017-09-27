@@ -6,7 +6,8 @@ import os
 
 
 def write_tobii_pupil_center_eye(b, tobii_data, tobii_offset, eye):
-    filtered = filter(lambda y: y["eye"] == eye, filter(lambda x: x.__contains__("pc"), tobii_data))
+    prop = "pc"
+    filtered = filter(lambda y: y["eye"] == eye, filter(lambda x: x.__contains__(prop), tobii_data))
     tobii_pc_data = sorted(filtered, key=operator.itemgetter("ts"))
 
     ts = []
@@ -14,7 +15,7 @@ def write_tobii_pupil_center_eye(b, tobii_data, tobii_offset, eye):
     for e in tobii_pc_data:
         # apply offset to timestamp
         ts.append(e["ts"] - tobii_offset)
-        coord = e["pc"]
+        coord = e[prop]
         combined.append([coord[0], coord[1], coord[2], e["s"]])
 
     da = b.create_data_array("pupil center " + eye, "nix.tobii.property", data=combined)
