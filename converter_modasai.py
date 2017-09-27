@@ -28,10 +28,10 @@ def write_channel_metadata(section, name, gain=100):
 
 def write_session_metadata(nixfile, block, metadatafile):
     md_sec = nixfile.create_section(block.name, "recording")
-    #rec_sec["experimenter"] = "John Doe"
-    #rec_sec["startDate"] = "-".join([block.name[:4], block.name[4:6], block.name[6:8]])
+    # rec_sec["experimenter"] = "John Doe"
+    # rec_sec["startDate"] = "-".join([block.name[:4], block.name[4:6], block.name[6:8]])
     block.metadata = md_sec
-    msecs = [0,0,0,0,0,0,0,0,0,0,0]
+    msecs = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     msecs[0] = md_sec
 
     if sys.version_info[0] < 3:
@@ -43,21 +43,22 @@ def write_session_metadata(nixfile, block, metadatafile):
     for mdatrow in csv.reader(mdf):
         print("---{0}".format(mdatrow))
         for (cnt, mdat) in enumerate(mdatrow):
-            if (mdat != ''):
-                #print("***{0}".format(mdat))
-                if cnt > prevcnt+1:
+            if mdat != '':
+                # print("***{0}".format(mdat))
+                if cnt > prevcnt + 1:
                     break
                 
-                if len(mdatrow) > cnt+1:
+                if len(mdatrow) > cnt + 1:
                     print("{0}".format(len(mdatrow)))
                     print("{0} {1} {2}".format(cnt, mdatrow, mdat))
                     msecs[cnt][mdat] = mdatrow[cnt + 1]
                     break
                 else:
                     msecs[cnt][mdat] = nix.S(mdat)
-                    msecs[cnt+1] = msecs[cnt][mdat]
+                    msecs[cnt + 1] = msecs[cnt][mdat]
                     prevcnt = cnt
                     break
+
 
 def write_subject_metadata(recording_session, name, species="homo sapiens"):
     recording_session["subject"] = nix.S("subject")
@@ -158,7 +159,7 @@ def write_trigger_signal(block, trigger, time, da_group, offset):
 
 
 def determine_offsets(time, trigger, tobii_data):
-    '''
+    """
     Determines the offsets (ate the first trigger) in the eeg and in the tobii signal
     assumes that the first 6 [0:5] trigger signals in the tobii  are pre sync pulses
      and takes the first sync pulse as reference.
@@ -167,7 +168,7 @@ def determine_offsets(time, trigger, tobii_data):
     :param trigger: trigger signals in teh eeg
     :param tobii_data: json formatted signal form the tobii
     :return:
-    '''
+    """
     trigger_on_erg = np.logical_and(np.diff(trigger) > 1, np.diff(trigger) < 5)
     trigger_off_erg = np.logical_and(np.diff(trigger) < -1, np.diff(trigger) > -5)
     # sync_trigger_tobii = filter(lambda y: y["dir"] == "out", filter(lambda x: x.__contains__("dir"), tobii_data))
@@ -189,7 +190,7 @@ def convert(time, trigger, data, parts, sr, tobii_data, metadatafile, eeg_offset
     save_events(b, trigger, g)
 
     # handle tobii data
-    tobii_group = write_tobii_data(b, tobii_data, tobii_offset)
+    write_tobii_data(b, tobii_data, tobii_offset)
 
     f.flush()
     f.close()
@@ -224,7 +225,7 @@ def write_tobii_pupil_center_eye(b, tobii_data, tobii_offset, eye):
         coord = e["pc"]
         combined.append([coord[0], coord[1], coord[2], e["s"]])
 
-    da = b.create_data_array("pupil center "+ eye, "nix.tobii.property", data=combined)
+    da = b.create_data_array("pupil center " + eye, "nix.tobii.property", data=combined)
     da.unit = "mm"
     da.label = "coordinates"
     da.description = "The timestamp has been modified by an offset of -" + str(tobii_offset)
@@ -295,16 +296,16 @@ def load_data(filename):
     sr = data[sr_key][0][0]
     time = combined_data[0, :]
     trigger = combined_data[-1, :]
-    data_eeg = combined_data[1:-1, :] # fixed offset bug -2 -> -1
+    data_eeg = combined_data[1:-1, :]  # fixed offset bug -2 -> -1
     return time, trigger, data_eeg, file_parts, sr
 
 
 def load_tobii_data(filename):
-    '''
+    """
     load data from tobii json file into json python object
     :param filename:
     :return: json python object
-    '''
+    """
     fp = open(filename)
     return [json.loads(e) for e in fp.readlines()]
 
@@ -312,18 +313,22 @@ def load_tobii_data(filename):
 def main():
     parser = argparse.ArgumentParser(description="")
     parser.add_argument("filename")
-    parser.add_argument('-m','--meta-data',  dest='metadatafile', metavar='STR', type=str, default='', required=True, help='Meta-data file')
-    parser.add_argument('-t','--tobii-data',  dest='tobiifile', metavar='STR', type=str, default='', required=False, help='Tobii-data file')
-    parser.add_argument('-e', '--eeg-offset', dest='eeg_offset', metavar='STR', type=str, default='', required=False, help='Offset for the eeg')
-    parser.add_argument('-o', '--tobii-offset', dest='tobii_offset', metavar='STR', type=str, default='', required=False, help='Offset for the tobii')
+    parser.add_argument('-m', '--meta-data',  dest='metadatafile', metavar='STR', type=str, default='',
+                        required=True, help='Meta-data file')
+    parser.add_argument('-t', '--tobii-data',  dest='tobiifile', metavar='STR', type=str, default='',
+                        required=False, help='Tobii-data file')
+    parser.add_argument('-e', '--eeg-offset', dest='eeg_offset', metavar='STR', type=str, default='',
+                        required=False, help='Offset for the eeg')
+    parser.add_argument('-o', '--tobii-offset', dest='tobii_offset', metavar='STR', type=str, default='',
+                        required=False, help='Offset for the tobii')
     # parser.add_argument("trigger_csv")
     # parser.add_argument("order")
 
     args = parser.parse_args()
-    if(not os.path.isfile(args.metadatafile)):
+    if not os.path.isfile(args.metadatafile):
         print("meta data file \"{0}\" could not be found.".format(args.metadatafile))
         sys.exit(0)
-        
+
     time, trigger, data, parts, sr = load_data(args.filename)
     if args.tobiifile != "":
         tobii_data = load_tobii_data(args.tobiifile)
@@ -339,6 +344,7 @@ def main():
     time = time - eeg_offset
 
     convert(time, trigger, data, parts, sr, tobii_data, args.metadatafile, eeg_offset, tobii_offset)
+
 
 if __name__ == "__main__":
     main()
