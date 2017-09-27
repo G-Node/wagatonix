@@ -66,7 +66,7 @@ def write_subject_metadata(recording_session, name, species="homo sapiens"):
     recording_session["subject"]["age"] = 54
 
 
-def write_channel_data(block, data, time, sr):
+def write_channel_data(block, data, time, sr, offset):
     group = block.create_group("eeg data", "nix.eeg.channels")
     hw = write_eeg_hardware_metadata(block, group)
 
@@ -86,6 +86,9 @@ def write_channel_data(block, data, time, sr):
                                      data=chdata.astype(np.double))
         da.unit = "uV"
         da.label = "voltage"
+        da.description = "Time"
+        da.description = "The time dimension has been modified by -" + str(offset)
+
         if use_range:
             dim = da.append_range_dimension(time)
         else:
@@ -116,8 +119,9 @@ def save_events(block, trigger, group):
     exp_positions.label = "time"
     exp_positions.unit = "s"
     exp_positions.append_alias_range_dimension()
+
     extents = np.ones(len(exp_start))
-    if(len(extents) > 1):
+    if len(extents) > 1:
         extents[-1] = 100.
     else:
         extents = [100]
@@ -125,6 +129,7 @@ def save_events(block, trigger, group):
     exp_extents.label = "time"
     exp_extents.unit = "s"
     exp_extents.append_alias_range_dimension()
+
     exp_starts = block.create_multi_tag("experiment starts", "nix.eeg.event", exp_positions)
     exp_starts.extents = exp_extents
     for da in group.data_arrays:
@@ -132,11 +137,13 @@ def save_events(block, trigger, group):
         corner_events.references.append(da)
 
 
-def write_trigger_signal(block, trigger, time, da_group):
+def write_trigger_signal(block, trigger, time, da_group, offset):
     trigger_da = block.create_data_array("trigger signal", "nix.eeg.trigger",
                                          data=trigger.astype(np.double))
     trigger_da.label = "voltage"
     trigger_da.unit = "mV"
+    trigger_da.description = "The time dimension has been modified by -" + str(offset)
+
     dim = trigger_da.append_sampled_dimension(np.mean(np.diff(time)))
     dim.unit = "s"
     dim.label = "time"
@@ -176,8 +183,8 @@ def convert(time, trigger, data, parts, sr, tobii_data, metadatafile, eeg_offset
     write_session_metadata(f, b, metadatafile)
 
     # TODO handle eeg offset
-    g = write_channel_data(b, data, time, sr)
-    write_trigger_signal(b, trigger, time, g)
+    g = write_channel_data(b, data, time, sr, eeg_offset)
+    write_trigger_signal(b, trigger, time, g, eeg_offset)
     save_events(b, trigger, g)
 
     # handle tobii data
@@ -210,7 +217,7 @@ def write_tobii_pupil_center_eye(b, tobii_data, tobii_offset, eye):
     ts = []
     combined = []
     for e in tobii_pc_data:
-        # apply offset to timestamp
+        # apply tobii offset to timestamp
         ts.append(e["ts"] - tobii_offset)
         coord = e["pc"]
         combined.append([coord[0], coord[1], coord[2], e["s"]])
@@ -291,6 +298,9 @@ def main():
         eeg_offset = args.eeg_offset
     if args.tobii_offset != "":
         tobii_offset = args.tobii_offset
+
+    # apply eeg offset to timestamp
+    time = time - eeg_offset
 
     convert(time, trigger, data, parts, sr, tobii_data, args.metadatafile, eeg_offset, tobii_offset)
 
