@@ -199,9 +199,21 @@ def convert(time, trigger, data, parts, sr, tobii_data, metadatafile, eeg_offset
 def write_tobii_data(b, tobii_data, tobii_offset):
     group = b.create_group("tobii data", "nix.tobii")
 
-    write_tobii_pupil_center(b, group, tobii_data, tobii_offset)
-    write_tobii_pupil_diameter(b, group, tobii_data, tobii_offset)
-    write_tobii_gaze_dir(b, group, tobii_data, tobii_offset)
+    da_left = write_tobii_pupil_center(b, tobii_data, tobii_offset, "left")
+    group.data_arrays.append(da_left.id)
+    da_right = write_tobii_pupil_center(b, tobii_data, tobii_offset, "right")
+    group.data_arrays.append(da_right.id)
+
+    da_left = write_tobii_pupil_diameter(b, tobii_data, tobii_offset, "left")
+    group.data_arrays.append(da_left.id)
+    da_right = write_tobii_pupil_diameter(b, tobii_data, tobii_offset, "right")
+    group.data_arrays.append(da_right.id)
+
+    da_left = write_tobii_gaze_dir(b, tobii_data, tobii_offset, "left")
+    group.data_arrays.append(da_left.id)
+    da_right = write_tobii_gaze_dir(b, tobii_data, tobii_offset, "right")
+    group.data_arrays.append(da_right.id)
+
     write_tobii_gaze_pos(b, group, tobii_data, tobii_offset)
     write_tobii_gaze_pos_3d(b, group, tobii_data, tobii_offset)
     write_tobii_gyroscope(b, group, tobii_data, tobii_offset)
@@ -440,15 +452,7 @@ def write_tobii_gaze_pos(b, g, tobii_data, tobii_offset):
     g.data_arrays.append(da.id)
 
 
-def write_tobii_gaze_dir(b, g, tobii_data, tobii_offset):
-    da_left = write_tobii_gaze_dir_eye(b, tobii_data, tobii_offset, "left")
-    g.data_arrays.append(da_left.id)
-
-    da_right = write_tobii_gaze_dir_eye(b, tobii_data, tobii_offset, "right")
-    g.data_arrays.append(da_right.id)
-
-
-def write_tobii_gaze_dir_eye(b, tobii_data, tobii_offset, eye):
+def write_tobii_gaze_dir(b, tobii_data, tobii_offset, eye):
     prop = "gd"
     filtered = filter(lambda y: y["eye"] == eye, filter(lambda x: x.__contains__(prop), tobii_data))
     tobii_pc_data = sorted(filtered, key=operator.itemgetter("ts"))
@@ -475,15 +479,7 @@ def write_tobii_gaze_dir_eye(b, tobii_data, tobii_offset, eye):
     return da
 
 
-def write_tobii_pupil_center(b, g, tobii_data, tobii_offset):
-    da_left = write_tobii_pupil_center_eye(b, tobii_data, tobii_offset, "left")
-    g.data_arrays.append(da_left.id)
-
-    da_right = write_tobii_pupil_center_eye(b, tobii_data, tobii_offset, "right")
-    g.data_arrays.append(da_right.id)
-
-
-def write_tobii_pupil_center_eye(b, tobii_data, tobii_offset, eye):
+def write_tobii_pupil_center(b, tobii_data, tobii_offset, eye):
     prop = "pc"
     filtered = filter(lambda y: y["eye"] == eye, filter(lambda x: x.__contains__(prop), tobii_data))
     tobii_pc_data = sorted(filtered, key=operator.itemgetter("ts"))
@@ -511,15 +507,7 @@ def write_tobii_pupil_center_eye(b, tobii_data, tobii_offset, eye):
     return da
 
 
-def write_tobii_pupil_diameter(b, g, tobii_data, tobii_offset):
-    da_left = write_tobii_pupil_diameter_eye(b, tobii_data, tobii_offset, "left")
-    g.data_arrays.append(da_left.id)
-
-    da_right = write_tobii_pupil_diameter_eye(b, tobii_data, tobii_offset, "right")
-    g.data_arrays.append(da_right.id)
-
-
-def write_tobii_pupil_diameter_eye(b, tobii_data, tobii_offset, eye):
+def write_tobii_pupil_diameter(b, tobii_data, tobii_offset, eye):
     prop = "pd"
     filtered = filter(lambda y: y["eye"] == eye, filter(lambda x: x.__contains__(prop), tobii_data))
     tobii_pc_data = sorted(filtered, key=operator.itemgetter("ts"))
