@@ -35,11 +35,4 @@ started.
 "sig" ... 0/1
 "dir" ... Sync-port signal package ... This sync package contains a log of signals sent. The example below "dir" indicates the direction, which can be "in" or "out". "sig" indicates a signal where 1 means a 3.3 V signal on the port and 0 means a 0.0 V signal.
 
-nix.File
-nix.Block … “experiment”
-nix.Group … name “eeg”
-nix.Group … name “eye tracker”
-
-nix.DataArray … eeg
-
 
