@@ -204,8 +204,39 @@ def write_tobii_data(b, tobii_data, tobii_offset):
     write_tobii_gaze_dir(b, group, tobii_data, tobii_offset)
     write_tobii_gaze_pos(b, group, tobii_data, tobii_offset)
     write_tobii_gaze_pos_3d(b, group, tobii_data, tobii_offset)
+    write_tobii_gyroscope(b, group, tobii_data, tobii_offset)
 
     return group
+
+
+def write_tobii_gyroscope(b, g, tobii_data, tobii_offset):
+    prop = "gy"
+    filtered = filter(lambda x: x.__contains__(prop), tobii_data)
+    tobii_pc_data = sorted(filtered, key=operator.itemgetter("ts"))
+
+    ts = []
+    combined = []
+    for e in tobii_pc_data:
+        # apply offset to timestamp
+        ts.append(e["ts"] - tobii_offset)
+        gy = e[prop]
+        # No description of the field "l" in the Tobii dev guide
+        combined.append([gy[0], gy[1], gy[2], e["s"]])
+
+    da = b.create_data_array("MEMS gyroscope", "nix.tobii.property", data=combined)
+    # TODO conversion from deg/s to nix supported rad/s
+    # da.unit = "rad/s"
+    da.label = "rotation"
+    da.description = "The timestamp has been modified by an offset of -" + str(tobii_offset)
+
+    dim = da.append_range_dimension(ts)
+    dim.unit = "us"
+    dim.label = "timestamp"
+
+    dim = da.append_set_dimension()
+    dim.labels = ["X", "Y", "Z", "error"]
+
+    g.data_arrays.append(da.id)
 
 
 def write_tobii_gaze_pos_3d(b, g, tobii_data, tobii_offset):
