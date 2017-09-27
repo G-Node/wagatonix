@@ -205,10 +205,10 @@ def write_tobii_data(b, tobii_data, tobii_offset):
 
 def write_tobii_pupil_center(b, g, tobii_data, tobii_offset):
     da_left = write_tobii_pupil_center_eye(b, tobii_data, tobii_offset, "left")
-    g._add_data_array_by_id(da_left.id)
+    g.data_arrays.append(da_left.id)
 
     da_right = write_tobii_pupil_center_eye(b, tobii_data, tobii_offset, "right")
-    g._add_data_array_by_id(da_right.id)
+    g.data_arrays.append(da_right.id)
 
 
 def write_tobii_pupil_center_eye(b, tobii_data, tobii_offset, eye):
