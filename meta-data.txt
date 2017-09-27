@@ -1,0 +1,13 @@
+experimenters
+,experimenter1
+,,name,hiro wagatsuma
+,,affiliation,kyutech
+,experimenter2
+,,name,yoshi asai
+,,affiliation,yamaguchi univ
+subject
+,species,homo sapiens
+,sex,male
+,age,45
+,id,003
+date,2017/3/4
