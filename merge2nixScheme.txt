@@ -7,18 +7,14 @@ nix.Group … name "eeg data" type "eeg.channels"
 nix.DataArray … name "channel 1"
 etc.
 
-nix.Group … name "eye tracker data" type "tobii"
+nix.Group … name "tobii data" type "nix.tobii"
 
-nix.DataArray … name "pupil center [l/r]" type "tobii/property"
+nix.DataArray … name "pupil center [l/r]" type "nix.tobii/property"
     timestamp [µs]
-    coordinateX [mm]
-    coordinateY [mm]
-    coordinateZ [mm]
+    coordinates [mm]
     stream error [no unit]
 
-    label
-
-nix.DataArray ... name "pupil diameter [l/r]" type "tobii/property"
+nix.DataArray ... name "pupil diameter [l/r]" type "nix.tobii/property"
     timestamp [µs]
     diameter [mm]
     stream error [no unit]
