@@ -205,8 +205,36 @@ def write_tobii_data(b, tobii_data, tobii_offset):
     write_tobii_gaze_pos(b, group, tobii_data, tobii_offset)
     write_tobii_gaze_pos_3d(b, group, tobii_data, tobii_offset)
     write_tobii_gyroscope(b, group, tobii_data, tobii_offset)
+    write_tobii_accelerometer(b, group, tobii_data, tobii_offset)
 
     return group
+
+def write_tobii_accelerometer(b, g, tobii_data, tobii_offset):
+    prop = "ac"
+    filtered = filter(lambda x: x.__contains__(prop), tobii_data)
+    tobii_pc_data = sorted(filtered, key=operator.itemgetter("ts"))
+
+    ts = []
+    combined = []
+    for e in tobii_pc_data:
+        # apply offset to timestamp
+        ts.append(e["ts"] - tobii_offset)
+        rotate = e[prop]
+        combined.append([rotate[0], rotate[1], rotate[2], e["s"]])
+
+    da = b.create_data_array("MEMS accelerometer", "nix.tobii.property", data=combined)
+    da.unit = "m/s^2"
+    da.label = "rotation"
+    da.description = "The timestamp has been modified by an offset of -" + str(tobii_offset)
+
+    dim = da.append_range_dimension(ts)
+    dim.unit = "us"
+    dim.label = "timestamp"
+
+    dim = da.append_set_dimension()
+    dim.labels = ["X", "Y", "Z", "error"]
+
+    g.data_arrays.append(da.id)
 
 
 def write_tobii_gyroscope(b, g, tobii_data, tobii_offset):
