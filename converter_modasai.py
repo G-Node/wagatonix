@@ -33,8 +33,12 @@ def write_session_metadata(nixfile, block, metadatafile):
     block.metadata = md_sec
     msecs = [0,0,0,0,0,0,0,0,0,0,0]
     msecs[0] = md_sec
-    
-    mdf = open(metadatafile, 'rb')
+
+    if sys.version_info[0] < 3:
+        mdf = open(metadatafile, 'rb')
+    else:
+        mdf = open(metadatafile)
+
     prevcnt = 0
     for mdatrow in csv.reader(mdf):
         print("---{0}".format(mdatrow))
@@ -169,14 +173,12 @@ def convert(time, trigger, data, parts, sr, tobii_data, metadatafile, eeg_offset
     # handle eeg data
     b = f.create_block(parts[0], "nix.recording.session")
 
-    # TODO use session metadata
-    #write_session_metadata(f, b, metadatafile)
+    write_session_metadata(f, b, metadatafile)
 
     # TODO handle eeg offset
-    # TODO fix eeg export errors
-    # g = write_channel_data(b, data, time, sr)
-    # write_trigger_signal(b, trigger, time, g)
-    # save_events(b, trigger, g)
+    g = write_channel_data(b, data, time, sr)
+    write_trigger_signal(b, trigger, time, g)
+    save_events(b, trigger, g)
 
     # handle tobii data
     tobii_group = write_tobii_data(b, tobii_data, tobii_offset)
