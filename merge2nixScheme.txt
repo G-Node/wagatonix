@@ -1,0 +1,82 @@
+# setup file
+
+nix.File ... ""
+nix.Block … "YYYYMMDD_ID"
+
+nix.Group … name "eeg data" type "eeg.channels"
+nix.DataArray … name "channel 1"
+etc.
+
+nix.Group … name "eye tracker data" type "tobii"
+
+nix.DataArray … name "pupil center [l/r]" type "tobii/property"
+    timestamp [µs]
+    coordinateX [mm]
+    coordinateY [mm]
+    coordinateZ [mm]
+    stream error [no unit]
+
+    label
+
+nix.DataArray ... name "pupil diameter [l/r]" type "tobii/property"
+    timestamp [µs]
+    diameter [mm]
+    stream error [no unit]
+
+nix.DataArray ... name "gaze direction [l/r]"
+    timestamp [µs]
+    gazeDirX [no unit]
+    gazeDirY [no unit]
+    gazeDirZ [no unit]
+    stream error [no unit]
+
+nix.DataArray ... name "gaze position"
+    timestamp [µs]
+    gazePosX [no dim]
+    gazePosY [no dim]
+    l [no dim]
+    stream error [no dim]
+
+nix.DataArray ... name "gaze position 3D"
+    timestamp [µs]
+    gazePosX [mm]
+    gazePosY [mm]
+    gazePosZ [mm]
+    stream error [no dim]
+
+nix.DataArray ... name "MEMS gyroscope"
+    timestamp [µs]
+    rotationX [degree/s] ... non si unit
+    rotationY [degree/s]
+    rotationZ [degree/s]
+    stream error [no dim]
+
+nix.DataArray ... name "MEMS accelerometer"
+    timestamp [µs]
+    movementX [m/s^2]
+    movementY [m/s^2]
+    movementZ [m/s^2]
+    stream error [no dim]
+
+nix.DataArray ... name "pipeline timestamp"
+    timestamp [µs]
+    pipetimestamp [µs]
+    pipeversion [dim]
+    stream error [no dim]
+
+nix.DataArray ... name "video timestamp"
+    timestamp [µs]
+    videotimestamp [µs] ???
+    stream error [no dim]
+
+nix.DataArray ... name "eye video timestamp"
+    timestamp [µs]
+    eyevideotimestamp [µs]
+    stream error [no dim]
+
+nix.DataArray ... name "sync port"
+    timestamp [µs]
+    dir [no dim] ... probably needs to be exported as 1 ('out') and 0 ('in')
+    sig [no dim]
+    stream error [no dim]
+
