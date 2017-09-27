@@ -8,6 +8,7 @@ import sys
 import argparse
 import glob
 import csv
+import json
 
 
 def write_eeg_hardware_metadata(block, group):
@@ -141,8 +142,25 @@ def write_trigger_signal(block, trigger, time, da_group):
         tag.references.append(da)
     tag.create_feature(trigger_da, nix.LinkType.Tagged)
 
+def determine_offsets(time, trigger, tobii_data):
+    '''
+    Detrmines the offsets (ate the first trigger) in the eeg and in the tobii signal
+    assumes that the first 6 [0:5] trigger signals in the tobii  are pre sync pulses
+     and takes the first sync pulse as reference.
+     return time offset off the first sync pulse in the eeg (in second) and the corresponing point in the tobii (us)
+    :param time: time vector of the eeg signal
+    :param trigger: trigger signals in teh eeg
+    :param tobii_data: json fromatted signal form the tobii
+    :return:
+    '''
+    trigger_on_erg = np.logical_and(np.diff(trigger) > 1, np.diff(trigger) < 5)
+    trigger_off_erg = np.logical_and(np.diff(trigger) < -1, np.diff(trigger) > -5)
+    sync_trigger_tobii = filter(lambda y: y["dir"] == "out", filter(lambda x: x.has_key("dir"), tobii_data))[6]
+    sync_trigger_eeg = time[np.where(trigger_on_erg)[0][1]]
+    return sync_trigger_eeg, sync_trigger_eeg
 
-def convert(time, trigger, data, parts, sr, metadatafile):
+
+def convert(time, trigger, data, parts, sr, tobii_data, metadatafile, eeg_offset, tobii_offset):
     f = nix.File.open(parts[0] + ".nix", nix.FileMode.Overwrite)
     b = f.create_block(parts[0], "nix.eeg.session")
     write_session_metadata(f, b, metadatafile)
@@ -174,14 +192,25 @@ def load_data(filename):
     sr = data[sr_key][0][0]
     time = combined_data[0, :]
     trigger = combined_data[-1, :]
-    data_eeg = combined_data[1:-1, :] # second range element inclusive or exclusive?
+    data_eeg = combined_data[1:-1, :] # fixed offset bug -2 -> -1
     return time, trigger, data_eeg, file_parts, sr
 
+def load_tobii_data(filename):
+    '''
+    load data from tobii json file into json python object
+    :param filename:
+    :return: json python object
+    '''
+    fp = open(filename)
+    livedata_json = [json.loads(e) for e in fp.readlines()]
 
 def main():
     parser = argparse.ArgumentParser(description="")
     parser.add_argument("filename")
     parser.add_argument('-m','--meta-data',  dest='metadatafile', metavar='STR', type=str, default='', required=True, help='Meta-data file')
+    parser.add_argument('-t','--tobii-data',  dest='tobiifile', metavar='STR', type=str, default='', required=False, help='Tobii-data file')
+    parser.add_argument('-e', '--eeg-offset', dest='eeg_offset', metavar='STR', type=str, default='', required=False, help='Offset for the eeg')
+    parser.add_argument('-e', '--tobii-offset', dest='tobii_offset', metavar='STR', type=str, default='', required=False, help='Offset for the tobii')
     # parser.add_argument("trigger_csv")
     # parser.add_argument("order")
 
@@ -191,7 +220,17 @@ def main():
         sys.exit(0)
         
     time, trigger, data, parts, sr = load_data(args.filename)
-    convert(time, trigger, data, parts, sr, args.metadatafile)
+    if args.tobiifile != "":
+        tobii_data = load_tobii_data(args.tobiifile)
+    else:
+        tobii_data = False
+    eeg_offset, tobii_offset = determine_offsets(time, trigger, tobii_data)
+    if args.eeg_offset != "":
+        eeg_offset = args.eeg_offset
+    if args.tobii_offset != "":
+        tobii_offset = args.tobii_offset
+
+    convert(time, trigger, data, parts, sr, tobii_data, args.metadatafile, eeg_offset, tobii_offset)
 
 if __name__ == "__main__":
     main()
