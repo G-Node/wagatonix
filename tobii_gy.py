@@ -24,7 +24,6 @@ for e in tobii_pc_data:
     # apply offset to timestamp
     ts.append(e["ts"] - tobii_offset)
     gy = e[prop]
-    # No description of the field "l" in the Tobii dev guide
     combined.append([gy[0], gy[1], gy[2], e["s"]])
 
 da = b.create_data_array("MEMS gyroscope", "nix.tobii.property", data=combined)

@@ -24,7 +24,6 @@ for e in tobii_pc_data:
     # apply offset to timestamp
     ts.append(e["ts"] - tobii_offset)
     gazePos = e[prop]
-    # No description of the field "l" in the Tobii dev guide
     combined.append([gazePos[0], gazePos[1], gazePos[2], e["s"]])
 
 da = b.create_data_array("gaze position 3D", "nix.tobii.property", data=combined)
