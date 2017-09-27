@@ -209,8 +209,40 @@ def write_tobii_data(b, tobii_data, tobii_offset):
     write_tobii_pipe_ts(b, group, tobii_data, tobii_offset)
     write_tobii_video_ts(b, group, tobii_data, tobii_offset)
     write_tobii_eye_video_ts(b, group, tobii_data, tobii_offset)
+    write_tobii_sync_port(b, group, tobii_data, tobii_offset)
 
     return group
+
+
+def write_tobii_sync_port(b, g, tobii_data, tobii_offset):
+    prop = "dir"
+    filtered = filter(lambda x: x.__contains__(prop), tobii_data)
+    tobii_pc_data = sorted(filtered, key=operator.itemgetter("ts"))
+
+    ts = []
+    combined = []
+    for e in tobii_pc_data:
+        # apply offset to timestamp
+        ts.append(e["ts"] - tobii_offset)
+        sig_dir = 0
+        if e[prop] == "in":
+            sig_dir = 1
+        combined.append([sig_dir, e["sig"], e["s"]])
+
+    da = b.create_data_array("sync port", "nix.tobii.property", data=combined)
+    da.label = "sync port"
+
+    ts_desc = "The timestamp has been modified by an offset of -" + str(tobii_offset)
+    da.description = ts_desc + "; direction 0=out, 1=in"
+
+    dim = da.append_range_dimension(ts)
+    dim.unit = "us"
+    dim.label = "timestamp"
+
+    dim = da.append_set_dimension()
+    dim.labels = ["direction", "signal", "error"]
+
+    g.data_arrays.append(da.id)
 
 
 def write_tobii_eye_video_ts(b, g, tobii_data, tobii_offset):
@@ -362,8 +394,8 @@ def write_tobii_gaze_pos_3d(b, g, tobii_data, tobii_offset):
     for e in tobii_pc_data:
         # apply offset to timestamp
         ts.append(e["ts"] - tobii_offset)
-        gazePos = e[prop]
-        combined.append([gazePos[0], gazePos[1], gazePos[2], e["s"]])
+        gaze_pos = e[prop]
+        combined.append([gaze_pos[0], gaze_pos[1], gaze_pos[2], e["s"]])
 
     da = b.create_data_array("gaze position 3D", "nix.tobii.property", data=combined)
     da.unit = "mm"
@@ -390,9 +422,9 @@ def write_tobii_gaze_pos(b, g, tobii_data, tobii_offset):
     for e in tobii_pc_data:
         # apply offset to timestamp
         ts.append(e["ts"] - tobii_offset)
-        gazePos = e[prop]
+        gaze_pos = e[prop]
         # No description of the field "l" in the Tobii dev guide
-        combined.append([gazePos[0], gazePos[1], e["l"], e["s"]])
+        combined.append([gaze_pos[0], gaze_pos[1], e["l"], e["s"]])
 
     da = b.create_data_array("gaze position", "nix.tobii.property", data=combined)
     da.label = "positions"
