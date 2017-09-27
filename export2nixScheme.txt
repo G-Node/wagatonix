@@ -11,7 +11,9 @@ nix.Group … name "tobii data" type "nix.tobii"
 
 nix.DataArray … name "pupil center [l/r]" type "nix.tobii/property"
     timestamp [µs]
-    coordinates [mm]
+    coordinatesX [mm]
+    coordinatesY [mm]
+    coordinatesZ [mm]
     stream error [no unit]
 
 nix.DataArray ... name "pupil diameter [l/r]" type "nix.tobii/property"
@@ -42,9 +44,9 @@ nix.DataArray ... name "gaze position 3D"
 
 nix.DataArray ... name "MEMS gyroscope"
     timestamp [µs]
-    rotationX [degree/s] ... non si unit
-    rotationY [degree/s]
-    rotationZ [degree/s]
+    rotationX [deg/s] ... non si unit, conversion to rad required
+    rotationY [deg/s]
+    rotationZ [deg/s]
     stream error [no dim]
 
 nix.DataArray ... name "MEMS accelerometer"
