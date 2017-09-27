@@ -1,14 +1,15 @@
 #!/usr/bin/env python
 from __future__ import print_function
+import argparse
+import csv
+import glob
+import json
 import nixio as nix
 import numpy as np
-import scipy.io as scio
+import operator
 import os
+import scipy.io as scio
 import sys
-import argparse
-import glob
-import csv
-import json
 
 
 def write_eeg_hardware_metadata(block, group):
@@ -142,15 +143,16 @@ def write_trigger_signal(block, trigger, time, da_group):
         tag.references.append(da)
     tag.create_feature(trigger_da, nix.LinkType.Tagged)
 
+
 def determine_offsets(time, trigger, tobii_data):
     '''
-    Detrmines the offsets (ate the first trigger) in the eeg and in the tobii signal
+    Determines the offsets (ate the first trigger) in the eeg and in the tobii signal
     assumes that the first 6 [0:5] trigger signals in the tobii  are pre sync pulses
      and takes the first sync pulse as reference.
      return time offset off the first sync pulse in the eeg (in second) and the corresponing point in the tobii (us)
     :param time: time vector of the eeg signal
     :param trigger: trigger signals in teh eeg
-    :param tobii_data: json fromatted signal form the tobii
+    :param tobii_data: json formatted signal form the tobii
     :return:
     '''
     trigger_on_erg = np.logical_and(np.diff(trigger) > 1, np.diff(trigger) < 5)
@@ -162,12 +164,62 @@ def determine_offsets(time, trigger, tobii_data):
 
 def convert(time, trigger, data, parts, sr, tobii_data, metadatafile, eeg_offset, tobii_offset):
     f = nix.File.open(parts[0] + ".nix", nix.FileMode.Overwrite)
-    b = f.create_block(parts[0], "nix.eeg.session")
+
+    # handle eeg data
+    b = f.create_block(parts[0], "nix.recording.session")
     write_session_metadata(f, b, metadatafile)
+    # TODO handle eeg offset
     g = write_channel_data(b, data, time, sr)
     write_trigger_signal(b, trigger, time, g)
     save_events(b, trigger, g)
+
+    # handle tobii data
+    tobii_group = write_tobii_data(b, tobii_data, tobii_offset)
+
     f.close()
+
+
+def write_tobii_data(b, tobii_data, tobii_offset):
+    group = b.create_group("tobii data", "nix.tobii")
+
+    write_tobii_pupil_center(b, g, tobii_data, tobii_offset)
+
+    return group
+
+
+def write_tobii_pupil_center(b, g, tobii_data, tobii_offset):
+    da_left = write_tobii_pupil_center_eye(b, tobii_data, tobii_offset, "left")
+    g._add_data_array_by_id(da_left.id)
+
+    da_right = write_tobii_pupil_center_eye(b, tobii_data, tobii_offset, "right")
+    g._add_data_array_by_id(da_right.id)
+
+
+def write_tobii_pupil_center_eye(b, tobii_data, tobii_offset, eye):
+    filtered = filter(lambda y: y["eye"] == eye, filter(lambda x: x.__contains__("pc"), tobii_data))
+    tobii_pc_data = sorted(filtered, key=operator.itemgetter("ts"))
+
+    ts = []
+    combined = []
+    for e in tobii_pc_data:
+        # apply offset to timestamp
+        ts.append(e["ts"] - tobii_offset)
+        coord = e["pc"]
+        combined.append([coord[0], coord[1], coord[2], e["s"]])
+
+    da = b.create_data_array("pupil center "+ eye, "nix.tobii.property", data=combined)
+    da.unit = "mm"
+    da.label = "coordinates"
+    da.description = "The timestamp has been modified by an offset of -" + str(tobii_offset)
+
+    dim = da.append_range_dimension(ts)
+    dim.unit = "us"
+    dim.label = "timestamp"
+
+    dim = da.append_set_dimension()
+    dim.labels = ["X", "Y", "Z", "error"]
+
+    return da
 
 
 def load_data(filename):
@@ -195,6 +247,7 @@ def load_data(filename):
     data_eeg = combined_data[1:-1, :] # fixed offset bug -2 -> -1
     return time, trigger, data_eeg, file_parts, sr
 
+
 def load_tobii_data(filename):
     '''
     load data from tobii json file into json python object
@@ -203,6 +256,7 @@ def load_tobii_data(filename):
     '''
     fp = open(filename)
     livedata_json = [json.loads(e) for e in fp.readlines()]
+
 
 def main():
     parser = argparse.ArgumentParser(description="")
@@ -234,5 +288,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
