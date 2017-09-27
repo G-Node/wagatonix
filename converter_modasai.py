@@ -108,6 +108,7 @@ def save_events(block, trigger, group):
     times = indices[0].astype(np.double) / 512
     corners = times[(states == 8) | (states == 10)]
     exp_start = times[(states == 4) | (states == 6)]
+    print("WARNING: Did not find experiment start condition")
 
     corner_positions = block.create_data_array("corner_times", "nix.timestamps", data=corners)
     corner_positions.label = "time"
