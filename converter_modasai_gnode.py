@@ -27,6 +27,7 @@ def write_channel_metadata(section, name, gain=100):
 
 
 def write_session_metadata(nixfile, block, metadatafile):
+    print("INFO: Writing metadata from '%s' to NIX" % metadatafile)
     md_sec = nixfile.create_section(block.name, "recording")
     # rec_sec["experimenter"] = "John Doe"
     # rec_sec["startDate"] = "-".join([block.name[:4], block.name[4:6], block.name[6:8]])
@@ -588,6 +589,7 @@ def load_data(filename):
     files = glob.glob(os.path.join(folder, pattern + "*.mat"))
     combined_data = None
     for f in files:
+        print("INFO/EEG: Importing file '%s'" % f)
         data = scio.matlab.loadmat(f)
         y = np.squeeze(data["y"])
         if combined_data is None:
