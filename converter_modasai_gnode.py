@@ -201,7 +201,6 @@ def convert(time, trigger, data, parts, sr, tobii_data, metadatafile, eeg_offset
 
     write_session_metadata(f, b, metadatafile)
 
-    # TODO handle eeg offset
     group_eeg = write_channel_data(b, data, time, sr, eeg_offset)
     write_trigger_signal(b, trigger, time, group_eeg, eeg_offset)
 
