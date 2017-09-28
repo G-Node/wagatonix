@@ -216,7 +216,6 @@ def convert(time, trigger, data, parts, sr, tobii_data, metadatafile, eeg_offset
     # apply multi_tags
     save_events(b, trigger, group_eeg, group_tobii)
 
-    f.flush()
     f.close()
 
 
