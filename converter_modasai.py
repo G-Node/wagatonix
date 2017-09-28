@@ -109,7 +109,7 @@ def save_events(block, trigger, group):
     times = indices[0].astype(np.double) / 512
     corners = times[(states == 8) | (states == 10)]
     exp_start = times[(states == 4) | (states == 6)]
-    print("WARNING: Did not find experiment start condition")
+    print("WARNING/EEG: Did not find experiment start condition")
 
     corner_positions = block.create_data_array("corner_times", "nix.timestamps", data=corners)
     corner_positions.label = "time"
@@ -244,17 +244,21 @@ def write_tobii_sync_port(b, g, tobii_data, tobii_offset):
     da = b.create_data_array("sync port", "nix.tobii.property", data=combined)
     da.label = "sync port"
 
-    ts_desc = "The timestamp has been modified by an offset of -" + str(tobii_offset)
-    da.description = ts_desc + "; direction 0=out, 1=in"
+    if len(combined) < 1:
+        print("INFO/TOBII: no '%s' data found" % prop)
+        da.append_set_dimension()
+    else:
+        ts_desc = "The timestamp has been modified by an offset of -" + str(tobii_offset)
+        da.description = ts_desc + "; direction 0=out, 1=in"
 
-    dim = da.append_range_dimension(ts)
-    dim.unit = "us"
-    dim.label = "timestamp"
+        dim = da.append_range_dimension(ts)
+        dim.unit = "us"
+        dim.label = "timestamp"
 
-    dim = da.append_set_dimension()
-    dim.labels = ["direction", "signal", "error"]
+        dim = da.append_set_dimension()
+        dim.labels = ["direction", "signal", "error"]
 
-    g.data_arrays.append(da.id)
+        g.data_arrays.append(da.id)
 
 
 def write_tobii_eye_video_ts(b, g, tobii_data, tobii_offset):
@@ -269,10 +273,13 @@ def write_tobii_eye_video_ts(b, g, tobii_data, tobii_offset):
         ts.append(e["ts"] - tobii_offset)
         combined.append([e[prop], e["s"]])
 
-    if len(combined) > 0:
-        da = b.create_data_array("evts", "nix.tobii.property", data=combined)
+    da = b.create_data_array("evts", "nix.tobii.property", data=combined)
+    da.label = "eye video timestamp"
+    if len(combined) < 1:
+        print("INFO/TOBII: no '%s' data found" % prop)
+        da.append_set_dimension()
+    else:
         da.unit = "us"
-        da.label = "eye video timestamp"
         da.description = "The timestamp has been modified by an offset of -" + str(tobii_offset)
 
         dim = da.append_range_dimension(ts)
@@ -298,18 +305,22 @@ def write_tobii_video_ts(b, g, tobii_data, tobii_offset):
         combined.append([e[prop], e["s"]])
 
     da = b.create_data_array("video timestamp", "nix.tobii.property", data=combined)
-    da.unit = "us"
     da.label = "video timestamp"
-    da.description = "The timestamp has been modified by an offset of -" + str(tobii_offset)
+    if len(combined) < 1:
+        print("INFO/TOBII: no '%s' data found" % prop)
+        da.append_set_dimension()
+    else:
+        da.unit = "us"
+        da.description = "The timestamp has been modified by an offset of -" + str(tobii_offset)
 
-    dim = da.append_range_dimension(ts)
-    dim.unit = "us"
-    dim.label = "timestamp"
+        dim = da.append_range_dimension(ts)
+        dim.unit = "us"
+        dim.label = "timestamp"
 
-    dim = da.append_set_dimension()
-    dim.labels = ["video timestamp", "error"]
+        dim = da.append_set_dimension()
+        dim.labels = ["video timestamp", "error"]
 
-    g.data_arrays.append(da.id)
+        g.data_arrays.append(da.id)
 
 
 def write_tobii_pipe_ts(b, g, tobii_data, tobii_offset):
@@ -325,18 +336,22 @@ def write_tobii_pipe_ts(b, g, tobii_data, tobii_offset):
         combined.append([e[prop], e["pv"], e["s"]])
 
     da = b.create_data_array("pipeline timestamp", "nix.tobii.property", data=combined)
-    da.unit = "us"
     da.label = "pipeline timestamp"
-    da.description = "The timestamp has been modified by an offset of -" + str(tobii_offset)
+    if len(combined) < 1:
+        print("INFO/TOBII: no '%s' data found" % prop)
+        da.append_set_dimension()
+    else:
+        da.unit = "us"
+        da.description = "The timestamp has been modified by an offset of -" + str(tobii_offset)
 
-    dim = da.append_range_dimension(ts)
-    dim.unit = "us"
-    dim.label = "timestamp"
+        dim = da.append_range_dimension(ts)
+        dim.unit = "us"
+        dim.label = "timestamp"
 
-    dim = da.append_set_dimension()
-    dim.labels = ["pipe timestamp", "pipe version", "error"]
+        dim = da.append_set_dimension()
+        dim.labels = ["pipe timestamp", "pipe version", "error"]
 
-    g.data_arrays.append(da.id)
+        g.data_arrays.append(da.id)
 
 
 def write_tobii_accelerometer(b, g, tobii_data, tobii_offset):
@@ -353,18 +368,22 @@ def write_tobii_accelerometer(b, g, tobii_data, tobii_offset):
         combined.append([rotate[0], rotate[1], rotate[2], e["s"]])
 
     da = b.create_data_array("MEMS accelerometer", "nix.tobii.property", data=combined)
-    da.unit = "m/s^2"
     da.label = "rotation"
-    da.description = "The timestamp has been modified by an offset of -" + str(tobii_offset)
+    if len(combined) < 1:
+        print("INFO/TOBII: no '%s' data found" % prop)
+        da.append_set_dimension()
+    else:
+        da.unit = "m/s^2"
+        da.description = "The timestamp has been modified by an offset of -" + str(tobii_offset)
 
-    dim = da.append_range_dimension(ts)
-    dim.unit = "us"
-    dim.label = "timestamp"
+        dim = da.append_range_dimension(ts)
+        dim.unit = "us"
+        dim.label = "timestamp"
 
-    dim = da.append_set_dimension()
-    dim.labels = ["X", "Y", "Z", "error"]
+        dim = da.append_set_dimension()
+        dim.labels = ["X", "Y", "Z", "error"]
 
-    g.data_arrays.append(da.id)
+        g.data_arrays.append(da.id)
 
 
 def write_tobii_gyroscope(b, g, tobii_data, tobii_offset):
@@ -381,19 +400,23 @@ def write_tobii_gyroscope(b, g, tobii_data, tobii_offset):
         combined.append([gy[0], gy[1], gy[2], e["s"]])
 
     da = b.create_data_array("MEMS gyroscope", "nix.tobii.property", data=combined)
-    # TODO conversion from deg/s to nix supported rad/s
-    # da.unit = "rad/s"
     da.label = "rotation"
-    da.description = "The timestamp has been modified by an offset of -" + str(tobii_offset)
+    if len(combined) < 1:
+        print("INFO/TOBII: no '%s' data found" % prop)
+        da.append_set_dimension()
+    else:
+        # TODO conversion from deg/s to nix supported rad/s
+        # da.unit = "rad/s"
+        da.description = "The timestamp has been modified by an offset of -" + str(tobii_offset)
 
-    dim = da.append_range_dimension(ts)
-    dim.unit = "us"
-    dim.label = "timestamp"
+        dim = da.append_range_dimension(ts)
+        dim.unit = "us"
+        dim.label = "timestamp"
 
-    dim = da.append_set_dimension()
-    dim.labels = ["X", "Y", "Z", "error"]
+        dim = da.append_set_dimension()
+        dim.labels = ["X", "Y", "Z", "error"]
 
-    g.data_arrays.append(da.id)
+        g.data_arrays.append(da.id)
 
 
 def write_tobii_gaze_pos_3d(b, g, tobii_data, tobii_offset):
@@ -410,18 +433,22 @@ def write_tobii_gaze_pos_3d(b, g, tobii_data, tobii_offset):
         combined.append([gaze_pos[0], gaze_pos[1], gaze_pos[2], e["s"]])
 
     da = b.create_data_array("gaze position 3D", "nix.tobii.property", data=combined)
-    da.unit = "mm"
     da.label = "positions"
-    da.description = "The timestamp has been modified by an offset of -" + str(tobii_offset)
+    if len(combined) < 1:
+        print("INFO/TOBII: no '%s' data found" % prop)
+        da.append_set_dimension()
+    else:
+        da.unit = "mm"
+        da.description = "The timestamp has been modified by an offset of -" + str(tobii_offset)
 
-    dim = da.append_range_dimension(ts)
-    dim.unit = "us"
-    dim.label = "timestamp"
+        dim = da.append_range_dimension(ts)
+        dim.unit = "us"
+        dim.label = "timestamp"
 
-    dim = da.append_set_dimension()
-    dim.labels = ["X", "Y", "Z", "error"]
+        dim = da.append_set_dimension()
+        dim.labels = ["X", "Y", "Z", "error"]
 
-    g.data_arrays.append(da.id)
+        g.data_arrays.append(da.id)
 
 
 def write_tobii_gaze_pos(b, g, tobii_data, tobii_offset):
@@ -440,16 +467,20 @@ def write_tobii_gaze_pos(b, g, tobii_data, tobii_offset):
 
     da = b.create_data_array("gaze position", "nix.tobii.property", data=combined)
     da.label = "positions"
-    da.description = "The timestamp has been modified by an offset of -" + str(tobii_offset)
+    if len(combined) < 1:
+        print("INFO/TOBII: no '%s' data found" % prop)
+        da.append_set_dimension()
+    else:
+        da.description = "The timestamp has been modified by an offset of -" + str(tobii_offset)
 
-    dim = da.append_range_dimension(ts)
-    dim.unit = "us"
-    dim.label = "timestamp"
+        dim = da.append_range_dimension(ts)
+        dim.unit = "us"
+        dim.label = "timestamp"
 
-    dim = da.append_set_dimension()
-    dim.labels = ["X", "Y", "l", "error"]
+        dim = da.append_set_dimension()
+        dim.labels = ["X", "Y", "l", "error"]
 
-    g.data_arrays.append(da.id)
+        g.data_arrays.append(da.id)
 
 
 def write_tobii_gaze_dir(b, tobii_data, tobii_offset, eye):
@@ -467,14 +498,18 @@ def write_tobii_gaze_dir(b, tobii_data, tobii_offset, eye):
 
     da = b.create_data_array("gaze direction " + eye, "nix.tobii.property", data=combined)
     da.label = "gaze direction"
-    da.description = "The timestamp has been modified by an offset of -" + str(tobii_offset)
+    if len(combined) < 1:
+        print("INFO/TOBII: no '%s' data found" % prop)
+        da.append_set_dimension()
+    else:
+        da.description = "The timestamp has been modified by an offset of -" + str(tobii_offset)
 
-    dim = da.append_range_dimension(ts)
-    dim.unit = "us"
-    dim.label = "timestamp"
+        dim = da.append_range_dimension(ts)
+        dim.unit = "us"
+        dim.label = "timestamp"
 
-    dim = da.append_set_dimension()
-    dim.labels = ["X", "Y", "Z", "error"]
+        dim = da.append_set_dimension()
+        dim.labels = ["X", "Y", "Z", "error"]
 
     return da
 
@@ -493,16 +528,21 @@ def write_tobii_pupil_center(b, tobii_data, tobii_offset, eye):
         combined.append([coord[0], coord[1], coord[2], e["s"]])
 
     da = b.create_data_array("pupil center " + eye, "nix.tobii.property", data=combined)
-    da.unit = "mm"
     da.label = "coordinates"
-    da.description = "The timestamp has been modified by an offset of -" + str(tobii_offset)
 
-    dim = da.append_range_dimension(ts)
-    dim.unit = "us"
-    dim.label = "timestamp"
+    if len(combined) < 1:
+        print("INFO/TOBII: no '%s' data found" % prop)
+        da.append_set_dimension()
+    else:
+        da.unit = "mm"
+        da.description = "The timestamp has been modified by an offset of -" + str(tobii_offset)
 
-    dim = da.append_set_dimension()
-    dim.labels = ["X", "Y", "Z", "error"]
+        dim = da.append_range_dimension(ts)
+        dim.unit = "us"
+        dim.label = "timestamp"
+
+        dim = da.append_set_dimension()
+        dim.labels = ["X", "Y", "Z", "error"]
 
     return da
 
@@ -520,16 +560,20 @@ def write_tobii_pupil_diameter(b, tobii_data, tobii_offset, eye):
         combined.append([e[prop], e["s"]])
 
     da = b.create_data_array("pupil diameter " + eye, "nix.tobii.property", data=combined)
-    da.unit = "mm"
     da.label = "pupil diameter"
-    da.description = "The timestamp has been modified by an offset of -" + str(tobii_offset)
+    if len(combined) < 1:
+        print("INFO/TOBII: no '%s' data found" % prop)
+        da.append_set_dimension()
+    else:
+        da.unit = "mm"
+        da.description = "The timestamp has been modified by an offset of -" + str(tobii_offset)
 
-    dim = da.append_range_dimension(ts)
-    dim.unit = "us"
-    dim.label = "timestamp"
+        dim = da.append_range_dimension(ts)
+        dim.unit = "us"
+        dim.label = "timestamp"
 
-    dim = da.append_set_dimension()
-    dim.labels = ["diameter", "error"]
+        dim = da.append_set_dimension()
+        dim.labels = ["diameter", "error"]
 
     return da
 
