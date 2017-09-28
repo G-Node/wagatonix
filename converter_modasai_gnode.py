@@ -72,13 +72,17 @@ def write_channel_data(block, data, time, sr, offset):
     group = block.create_group("eeg data", "nix.eeg.channels")
     hw = write_eeg_hardware_metadata(block, group)
 
-    dt = np.mean(np.diff(time))
-    diff = 1./dt - sr
-    use_range = diff > np.finfo(np.float32).eps
+    # with the current implementation, we should always use range dimension,
+    # since the time requires to be modified by an offset for alignment
+    # with other data.
 
-    if use_range:
-        print("sampling rate does not match timestamps using range dimension (need more space!)",
-              file=sys.stderr)
+    # dt = np.mean(np.diff(time))
+    # diff = 1./dt - sr
+    # use_range = diff > np.finfo(np.float32).eps
+
+    # if use_range:
+    #     print("sampling rate does not match timestamps using range dimension (need more space!)",
+    #          file=sys.stderr)
 
     nchan = data.shape[0]
 
@@ -91,10 +95,12 @@ def write_channel_data(block, data, time, sr, offset):
         da.description = "Time"
         da.description = "The time dimension has been modified by -" + str(offset)
 
-        if use_range:
-            dim = da.append_range_dimension(time)
-        else:
-            dim = da.append_sampled_dimension(dt)
+        # if use_range:
+        #     dim = da.append_range_dimension(time)
+        # else:
+        #     dim = da.append_sampled_dimension(dt)
+
+        dim = da.append_range_dimension(time)
         dim.unit = "s"
         dim.label = "time"
         sec = write_channel_metadata(hw, "channel %d" % (ch + 1), 100+ch)
