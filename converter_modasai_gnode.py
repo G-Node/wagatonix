@@ -226,7 +226,7 @@ def write_tobii_data(b, tobii_data, tobii_offset):
     write_tobii_pipe_ts(b, group, tobii_data, tobii_offset)
     write_tobii_video_ts(b, group, tobii_data, tobii_offset)
     write_tobii_eye_video_ts(b, group, tobii_data, tobii_offset)
-    #write_tobii_sync_port(b, group, tobii_data, tobii_offset)
+    write_tobii_sync_port(b, group, tobii_data, tobii_offset)
 
     return group
 
@@ -245,39 +245,43 @@ def create_range_data_array(b, name, type, desc, data, label, unit, range_data, 
     return da
 
 
-def write_tobii_sync_port(b, g, tobii_data, tobii_offset):
+def write_tobii_sync_port(b, group, tobii_data, tobii_offset):
     prop = "dir"
     filtered = filter(lambda x: x.__contains__(prop), tobii_data)
     tobii_pc_data = sorted(filtered, key=operator.itemgetter("ts"))
 
     ts = []
-    combined = []
+    direction = []
+    sig = []
+    err = []
     for e in tobii_pc_data:
         # apply offset to timestamp
         ts.append(e["ts"] - tobii_offset)
         sig_dir = 0
         if e[prop] == "in":
             sig_dir = 1
-        combined.append([sig_dir, e["sig"], e["s"]])
+        direction.append(sig_dir)
+        sig.append(e["sig"])
+        err.append(e["s"])
 
-    da = b.create_data_array("sync port", "nix.tobii.property", data=combined)
-    da.label = "sync port"
-
-    if len(combined) < 1:
+    if len(err) < 1:
         print("INFO/TOBII: no '%s' data found" % prop)
-        da.append_set_dimension()
-    else:
-        ts_desc = "The timestamp has been modified by an offset of -" + str(tobii_offset)
-        da.description = ts_desc + "; direction 0=out, 1=in"
 
-        dim = da.append_range_dimension(ts)
-        dim.unit = "us"
-        dim.label = "timestamp"
+    desc = "The timestamp has been modified by an offset of -" + str(tobii_offset)
+    desc = desc + "; direction 0=out, 1=in"
 
-        dim = da.append_set_dimension()
-        dim.labels = ["direction", "signal", "error"]
+    nix_type = "nix.tobii.property." + prop
+    name = "sync port"
 
-        g.data_arrays.append(da.id)
+    da_x = create_range_data_array(b, name, nix_type, desc, direction, "direction", "",
+                                   ts, "timestamp", "us")
+    da_y = create_range_data_array(b, name, nix_type, desc, sig, "signal", "",
+                                   ts, "timestamp", "us")
+    da_e = create_range_data_array(b, name, nix_type, desc, err, "error", "",
+                                   ts, "timestamp", "us")
+
+    for d in [da_x, da_y, da_e]:
+        group.data_arrays.append(d.id)
 
 
 def write_tobii_eye_video_ts(b, group, tobii_data, tobii_offset):
