@@ -211,22 +211,15 @@ def write_tobii_data(b, tobii_data, tobii_offset):
     group = b.create_group("tobii data", "nix.tobii")
 
     da = write_tobii_pupil_center(b, tobii_data, tobii_offset, "left")
-    for d in da:
-        group.data_arrays.append(d.id)
+    da.extend(write_tobii_pupil_center(b, tobii_data, tobii_offset, "right"))
 
-    #da_right = write_tobii_pupil_center(b, tobii_data, tobii_offset, "right")
     #da_left = write_tobii_pupil_diameter(b, tobii_data, tobii_offset, "left")
     #group.data_arrays.append(da_left.id)
     #da_right = write_tobii_pupil_diameter(b, tobii_data, tobii_offset, "right")
     #group.data_arrays.append(da_right.id)
 
-    da = write_tobii_gaze_dir(b, tobii_data, tobii_offset, "left")
-    for d in da:
-        group.data_arrays.append(d.id)
-
-    #group.data_arrays.append(da_left.id)
-    #da_right = write_tobii_gaze_dir(b, tobii_data, tobii_offset, "right")
-    #group.data_arrays.append(da_right.id)
+    da.extend(write_tobii_gaze_dir(b, tobii_data, tobii_offset, "left"))
+    da.extend(write_tobii_gaze_dir(b, tobii_data, tobii_offset, "right"))
 
     #write_tobii_gaze_pos(b, group, tobii_data, tobii_offset)
     #write_tobii_gaze_pos_3d(b, group, tobii_data, tobii_offset)
@@ -236,6 +229,9 @@ def write_tobii_data(b, tobii_data, tobii_offset):
     #write_tobii_video_ts(b, group, tobii_data, tobii_offset)
     #write_tobii_eye_video_ts(b, group, tobii_data, tobii_offset)
     #write_tobii_sync_port(b, group, tobii_data, tobii_offset)
+
+    for d in da:
+        group.data_arrays.append(d.id)
 
     return group
 
