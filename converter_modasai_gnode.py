@@ -224,7 +224,7 @@ def write_tobii_data(b, tobii_data, tobii_offset):
     write_tobii_gyroscope(b, group, tobii_data, tobii_offset)
     write_tobii_accelerometer(b, group, tobii_data, tobii_offset)
     write_tobii_pipe_ts(b, group, tobii_data, tobii_offset)
-    #write_tobii_video_ts(b, group, tobii_data, tobii_offset)
+    write_tobii_video_ts(b, group, tobii_data, tobii_offset)
     #write_tobii_eye_video_ts(b, group, tobii_data, tobii_offset)
     #write_tobii_sync_port(b, group, tobii_data, tobii_offset)
 
@@ -312,35 +312,34 @@ def write_tobii_eye_video_ts(b, g, tobii_data, tobii_offset):
         g.data_arrays.append(da.id)
 
 
-def write_tobii_video_ts(b, g, tobii_data, tobii_offset):
+def write_tobii_video_ts(b, group, tobii_data, tobii_offset):
     prop = "vts"
     filtered = filter(lambda x: x.__contains__(prop), tobii_data)
     tobii_pc_data = sorted(filtered, key=operator.itemgetter("ts"))
 
     ts = []
-    combined = []
+    vts = []
+    err = []
     for e in tobii_pc_data:
         # apply offset to timestamp
         ts.append(e["ts"] - tobii_offset)
-        combined.append([e[prop], e["s"]])
+        vts.append(e[prop])
+        err.append(e["s"])
 
-    da = b.create_data_array("video timestamp", "nix.tobii.property", data=combined)
-    da.label = "video timestamp"
-    if len(combined) < 1:
+    if len(err) < 1:
         print("INFO/TOBII: no '%s' data found" % prop)
-        da.append_set_dimension()
-    else:
-        da.unit = "us"
-        da.description = "The timestamp has been modified by an offset of -" + str(tobii_offset)
 
-        dim = da.append_range_dimension(ts)
-        dim.unit = "us"
-        dim.label = "timestamp"
+    desc = "The timestamp has been modified by an offset of -" + str(tobii_offset)
+    nix_type = "nix.tobii.property." + prop
+    name = "vts"
 
-        dim = da.append_set_dimension()
-        dim.labels = ["video timestamp", "error"]
+    da_x = create_range_data_array(b, name, nix_type, desc, vts, "video timestamp", "us",
+                                   ts, "timestamp", "us")
+    da_e = create_range_data_array(b, name, nix_type, desc, err, "error", "",
+                                   ts, "timestamp", "us")
 
-        g.data_arrays.append(da.id)
+    for d in [da_x, da_e]:
+        group.data_arrays.append(d.id)
 
 
 def write_tobii_pipe_ts(b, group, tobii_data, tobii_offset):
