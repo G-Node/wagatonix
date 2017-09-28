@@ -210,31 +210,49 @@ def convert(time, trigger, data, parts, sr, tobii_data, metadatafile, eeg_offset
 def write_tobii_data(b, tobii_data, tobii_offset):
     group = b.create_group("tobii data", "nix.tobii")
 
-    da_left = write_tobii_pupil_center(b, tobii_data, tobii_offset, "left")
-    group.data_arrays.append(da_left.id)
-    da_right = write_tobii_pupil_center(b, tobii_data, tobii_offset, "right")
-    group.data_arrays.append(da_right.id)
+    da = write_tobii_pupil_center(b, tobii_data, tobii_offset, "left")
+    for d in da:
+        group.data_arrays.append(d.id)
 
-    da_left = write_tobii_pupil_diameter(b, tobii_data, tobii_offset, "left")
-    group.data_arrays.append(da_left.id)
-    da_right = write_tobii_pupil_diameter(b, tobii_data, tobii_offset, "right")
-    group.data_arrays.append(da_right.id)
+    #da_right = write_tobii_pupil_center(b, tobii_data, tobii_offset, "right")
+    #da_left = write_tobii_pupil_diameter(b, tobii_data, tobii_offset, "left")
+    #group.data_arrays.append(da_left.id)
+    #da_right = write_tobii_pupil_diameter(b, tobii_data, tobii_offset, "right")
+    #group.data_arrays.append(da_right.id)
 
-    da_left = write_tobii_gaze_dir(b, tobii_data, tobii_offset, "left")
-    group.data_arrays.append(da_left.id)
-    da_right = write_tobii_gaze_dir(b, tobii_data, tobii_offset, "right")
-    group.data_arrays.append(da_right.id)
+    da = write_tobii_gaze_dir(b, tobii_data, tobii_offset, "left")
+    for d in da:
+        group.data_arrays.append(d.id)
 
-    write_tobii_gaze_pos(b, group, tobii_data, tobii_offset)
-    write_tobii_gaze_pos_3d(b, group, tobii_data, tobii_offset)
-    write_tobii_gyroscope(b, group, tobii_data, tobii_offset)
-    write_tobii_accelerometer(b, group, tobii_data, tobii_offset)
-    write_tobii_pipe_ts(b, group, tobii_data, tobii_offset)
-    write_tobii_video_ts(b, group, tobii_data, tobii_offset)
-    write_tobii_eye_video_ts(b, group, tobii_data, tobii_offset)
-    write_tobii_sync_port(b, group, tobii_data, tobii_offset)
+    #group.data_arrays.append(da_left.id)
+    #da_right = write_tobii_gaze_dir(b, tobii_data, tobii_offset, "right")
+    #group.data_arrays.append(da_right.id)
+
+    #write_tobii_gaze_pos(b, group, tobii_data, tobii_offset)
+    #write_tobii_gaze_pos_3d(b, group, tobii_data, tobii_offset)
+    #write_tobii_gyroscope(b, group, tobii_data, tobii_offset)
+    #write_tobii_accelerometer(b, group, tobii_data, tobii_offset)
+    #write_tobii_pipe_ts(b, group, tobii_data, tobii_offset)
+    #write_tobii_video_ts(b, group, tobii_data, tobii_offset)
+    #write_tobii_eye_video_ts(b, group, tobii_data, tobii_offset)
+    #write_tobii_sync_port(b, group, tobii_data, tobii_offset)
 
     return group
+
+
+def create_range_data_array(b, name, type, desc, data, label, unit, range_data, range_label, range_unit):
+    da = b.create_data_array(name + " " + label, type, data=data)
+    da.label = label
+    da.description = desc
+    dim = da.append_range_dimension(range_data)
+    dim.label = range_label
+
+    if unit:
+        da.unit = unit
+    if range_unit:
+        dim.unit = range_unit
+
+    return da
 
 
 def write_tobii_sync_port(b, g, tobii_data, tobii_offset):
@@ -500,29 +518,33 @@ def write_tobii_gaze_dir(b, tobii_data, tobii_offset, eye):
     tobii_pc_data = sorted(filtered, key=operator.itemgetter("ts"))
 
     ts = []
-    combined = []
+    coord = []
+    err = []
     for e in tobii_pc_data:
         # apply offset to timestamp
         ts.append(e["ts"] - tobii_offset)
-        coord = e[prop]
-        combined.append([coord[0], coord[1], coord[2], e["s"]])
+        coord.append(e[prop])
+        err.append(e["s"])
 
-    da = b.create_data_array("gaze direction " + eye, "nix.tobii.property", data=combined)
-    da.label = "gaze direction"
-    if len(combined) < 1:
+    if len(err) < 1:
         print("INFO/TOBII: no '%s' data found" % prop)
-        da.append_set_dimension()
-    else:
-        da.description = "The timestamp has been modified by an offset of -" + str(tobii_offset)
 
-        dim = da.append_range_dimension(ts)
-        dim.unit = "us"
-        dim.label = "timestamp"
+    coord = np.transpose(coord)
 
-        dim = da.append_set_dimension()
-        dim.labels = ["X", "Y", "Z", "error"]
+    desc = "The timestamp has been modified by an offset of -" + str(tobii_offset)
+    nix_type = "nix.tobii.property." + prop
+    name = "gaze direction " + eye
 
-    return da
+    da_x = create_range_data_array(b, name, nix_type, desc, coord[0], "coordinatesX", "",
+                                   ts, "timestamp", "us")
+    da_y = create_range_data_array(b, name, nix_type, desc, coord[1], "coordinatesY", "",
+                                   ts, "timestamp", "us")
+    da_z = create_range_data_array(b, name, nix_type, desc, coord[2], "coordinatesZ", "",
+                                   ts, "timestamp", "us")
+    da_e = create_range_data_array(b, name, nix_type, desc, coord[2], "error", "",
+                                   ts, "timestamp", "us")
+
+    return [da_x, da_y, da_z, da_e]
 
 
 def write_tobii_pupil_center(b, tobii_data, tobii_offset, eye):
@@ -531,31 +553,33 @@ def write_tobii_pupil_center(b, tobii_data, tobii_offset, eye):
     tobii_pc_data = sorted(filtered, key=operator.itemgetter("ts"))
 
     ts = []
-    combined = []
+    coord = []
+    err = []
     for e in tobii_pc_data:
         # apply tobii offset to timestamp
         ts.append(e["ts"] - tobii_offset)
-        coord = e[prop]
-        combined.append([coord[0], coord[1], coord[2], e["s"]])
+        coord.append(e[prop])
+        err.append(e["s"])
 
-    da = b.create_data_array("pupil center " + eye, "nix.tobii.property", data=combined)
-    da.label = "coordinates"
-
-    if len(combined) < 1:
+    if len(err) < 1:
         print("INFO/TOBII: no '%s' data found" % prop)
-        da.append_set_dimension()
-    else:
-        da.unit = "mm"
-        da.description = "The timestamp has been modified by an offset of -" + str(tobii_offset)
 
-        dim = da.append_range_dimension(ts)
-        dim.unit = "us"
-        dim.label = "timestamp"
+    coord = np.transpose(coord)
 
-        dim = da.append_set_dimension()
-        dim.labels = ["X", "Y", "Z", "error"]
+    desc = "The timestamp has been modified by an offset of -" + str(tobii_offset)
+    name = "pupil center " + eye
+    nix_type = "nix.tobii.property." + prop
 
-    return da
+    da_x = create_range_data_array(b, name, nix_type, desc, coord[0], "coordinatesX", "mm",
+                                   ts, "timestamp", "us")
+    da_y = create_range_data_array(b, name, nix_type, desc, coord[1], "coordinatesY", "mm",
+                                   ts, "timestamp", "us")
+    da_z = create_range_data_array(b, name, nix_type, desc, coord[2], "coordinatesZ", "mm",
+                                   ts, "timestamp", "us")
+    da_e = create_range_data_array(b, name, nix_type, desc, coord[2], "error", "",
+                                   ts, "timestamp", "us")
+
+    return [da_x, da_y, da_z, da_e]
 
 
 def write_tobii_pupil_diameter(b, tobii_data, tobii_offset, eye):
