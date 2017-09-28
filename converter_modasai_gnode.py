@@ -137,12 +137,12 @@ def save_events(block, trigger, group_eeg, group_tobii):
     exp_starts = block.create_multi_tag("experiment starts", "nix.eeg.event", exp_positions)
     exp_starts.extents = exp_extents
     for da in group_eeg.data_arrays:
-        print("INFO/TAGS: Applying multi_tags to EEG data '%s'" % da.name)
+        # print("INFO/TAGS: Applying multi_tags to EEG data '%s'" % da.name)
         exp_starts.references.append(da)
         corner_events.references.append(da)
 
     for da in group_tobii.data_arrays:
-        print("INFO/TAGS: Applying multi_tags to TOBII data '%s'" % da.name)
+        # print("INFO/TAGS: Applying multi_tags to TOBII data '%s'" % da.name)
         exp_starts.references.append(da)
         corner_events.references.append(da)
 
@@ -225,7 +225,7 @@ def write_tobii_data(b, tobii_data, tobii_offset):
     write_tobii_accelerometer(b, group, tobii_data, tobii_offset)
     write_tobii_pipe_ts(b, group, tobii_data, tobii_offset)
     write_tobii_video_ts(b, group, tobii_data, tobii_offset)
-    #write_tobii_eye_video_ts(b, group, tobii_data, tobii_offset)
+    write_tobii_eye_video_ts(b, group, tobii_data, tobii_offset)
     #write_tobii_sync_port(b, group, tobii_data, tobii_offset)
 
     return group
@@ -233,13 +233,12 @@ def write_tobii_data(b, tobii_data, tobii_offset):
 
 def create_range_data_array(b, name, type, desc, data, label, unit, range_data, range_label, range_unit):
     da = b.create_data_array(name + " " + label, type, data=data)
-    da.label = label
     da.description = desc
-    dim = da.append_range_dimension(range_data)
-    dim.label = range_label
-
+    da.label = label
     if unit:
         da.unit = unit
+    dim = da.append_range_dimension(range_data)
+    dim.label = range_label
     if range_unit:
         dim.unit = range_unit
 
@@ -281,35 +280,34 @@ def write_tobii_sync_port(b, g, tobii_data, tobii_offset):
         g.data_arrays.append(da.id)
 
 
-def write_tobii_eye_video_ts(b, g, tobii_data, tobii_offset):
+def write_tobii_eye_video_ts(b, group, tobii_data, tobii_offset):
     prop = "evts"
     filtered = filter(lambda x: x.__contains__(prop), tobii_data)
     tobii_pc_data = sorted(filtered, key=operator.itemgetter("ts"))
 
     ts = []
-    combined = []
+    evts = []
+    err = []
     for e in tobii_pc_data:
         # apply offset to timestamp
         ts.append(e["ts"] - tobii_offset)
-        combined.append([e[prop], e["s"]])
+        evts.append(e[prop])
+        err.append(e["s"])
 
-    da = b.create_data_array("evts", "nix.tobii.property", data=combined)
-    da.label = "eye video timestamp"
-    if len(combined) < 1:
+    if len(err) < 1:
         print("INFO/TOBII: no '%s' data found" % prop)
-        da.append_set_dimension()
-    else:
-        da.unit = "us"
-        da.description = "The timestamp has been modified by an offset of -" + str(tobii_offset)
 
-        dim = da.append_range_dimension(ts)
-        dim.unit = "us"
-        dim.label = "timestamp"
+    desc = "The timestamp has been modified by an offset of -" + str(tobii_offset)
+    nix_type = "nix.tobii.property." + prop
+    name = "evts"
 
-        dim = da.append_set_dimension()
-        dim.labels = ["eye video timestamp", "error"]
+    da_x = create_range_data_array(b, name, nix_type, desc, evts, "eye video timestamp", "us",
+                                   ts, "timestamp", "us")
+    da_e = create_range_data_array(b, name, nix_type, desc, err, "error", "",
+                                   ts, "timestamp", "us")
 
-        g.data_arrays.append(da.id)
+    for d in [da_x, da_e]:
+        group.data_arrays.append(d.id)
 
 
 def write_tobii_video_ts(b, group, tobii_data, tobii_offset):
