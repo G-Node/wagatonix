@@ -266,22 +266,22 @@ def write_tobii_sync_port(b, group, tobii_data, tobii_offset):
 
     if len(err) < 1:
         print("INFO/TOBII: no '%s' data found" % prop)
+    else:
+        desc = "The timestamp has been modified by an offset of -" + str(tobii_offset)
+        desc = desc + "; direction 0=out, 1=in"
 
-    desc = "The timestamp has been modified by an offset of -" + str(tobii_offset)
-    desc = desc + "; direction 0=out, 1=in"
+        nix_type = "nix.tobii.property." + prop
+        name = "sync port"
 
-    nix_type = "nix.tobii.property." + prop
-    name = "sync port"
+        da_x = create_range_data_array(b, name, nix_type, desc, direction, "direction", "",
+                                       ts, "timestamp", "us")
+        da_y = create_range_data_array(b, name, nix_type, desc, sig, "signal", "",
+                                       ts, "timestamp", "us")
+        da_e = create_range_data_array(b, name, nix_type, desc, err, "error", "",
+                                       ts, "timestamp", "us")
 
-    da_x = create_range_data_array(b, name, nix_type, desc, direction, "direction", "",
-                                   ts, "timestamp", "us")
-    da_y = create_range_data_array(b, name, nix_type, desc, sig, "signal", "",
-                                   ts, "timestamp", "us")
-    da_e = create_range_data_array(b, name, nix_type, desc, err, "error", "",
-                                   ts, "timestamp", "us")
-
-    for d in [da_x, da_y, da_e]:
-        group.data_arrays.append(d.id)
+        for d in [da_x, da_y, da_e]:
+            group.data_arrays.append(d.id)
 
 
 def write_tobii_eye_video_ts(b, group, tobii_data, tobii_offset):
@@ -300,18 +300,18 @@ def write_tobii_eye_video_ts(b, group, tobii_data, tobii_offset):
 
     if len(err) < 1:
         print("INFO/TOBII: no '%s' data found" % prop)
+    else:
+        desc = "The timestamp has been modified by an offset of -" + str(tobii_offset)
+        nix_type = "nix.tobii.property." + prop
+        name = "evts"
 
-    desc = "The timestamp has been modified by an offset of -" + str(tobii_offset)
-    nix_type = "nix.tobii.property." + prop
-    name = "evts"
+        da_x = create_range_data_array(b, name, nix_type, desc, evts, "eye video timestamp", "us",
+                                       ts, "timestamp", "us")
+        da_e = create_range_data_array(b, name, nix_type, desc, err, "error", "",
+                                       ts, "timestamp", "us")
 
-    da_x = create_range_data_array(b, name, nix_type, desc, evts, "eye video timestamp", "us",
-                                   ts, "timestamp", "us")
-    da_e = create_range_data_array(b, name, nix_type, desc, err, "error", "",
-                                   ts, "timestamp", "us")
-
-    for d in [da_x, da_e]:
-        group.data_arrays.append(d.id)
+        for d in [da_x, da_e]:
+            group.data_arrays.append(d.id)
 
 
 def write_tobii_video_ts(b, group, tobii_data, tobii_offset):
@@ -330,18 +330,18 @@ def write_tobii_video_ts(b, group, tobii_data, tobii_offset):
 
     if len(err) < 1:
         print("INFO/TOBII: no '%s' data found" % prop)
+    else:
+        desc = "The timestamp has been modified by an offset of -" + str(tobii_offset)
+        nix_type = "nix.tobii.property." + prop
+        name = "vts"
 
-    desc = "The timestamp has been modified by an offset of -" + str(tobii_offset)
-    nix_type = "nix.tobii.property." + prop
-    name = "vts"
+        da_x = create_range_data_array(b, name, nix_type, desc, vts, "video timestamp", "us",
+                                       ts, "timestamp", "us")
+        da_e = create_range_data_array(b, name, nix_type, desc, err, "error", "",
+                                       ts, "timestamp", "us")
 
-    da_x = create_range_data_array(b, name, nix_type, desc, vts, "video timestamp", "us",
-                                   ts, "timestamp", "us")
-    da_e = create_range_data_array(b, name, nix_type, desc, err, "error", "",
-                                   ts, "timestamp", "us")
-
-    for d in [da_x, da_e]:
-        group.data_arrays.append(d.id)
+        for d in [da_x, da_e]:
+            group.data_arrays.append(d.id)
 
 
 def write_tobii_pipe_ts(b, group, tobii_data, tobii_offset):
@@ -362,20 +362,20 @@ def write_tobii_pipe_ts(b, group, tobii_data, tobii_offset):
 
     if len(err) < 1:
         print("INFO/TOBII: no '%s' data found" % prop)
+    else:
+        desc = "The timestamp has been modified by an offset of -" + str(tobii_offset)
+        nix_type = "nix.tobii.property." + prop
+        name = "pts"
 
-    desc = "The timestamp has been modified by an offset of -" + str(tobii_offset)
-    nix_type = "nix.tobii.property." + prop
-    name = "pts"
+        da_x = create_range_data_array(b, name, nix_type, desc, pts, "pipe timestamp", "us",
+                                       ts, "timestamp", "us")
+        da_y = create_range_data_array(b, name, nix_type, desc, pv, "pipe version", "",
+                                       ts, "timestamp", "us")
+        da_e = create_range_data_array(b, name, nix_type, desc, err, "error", "",
+                                       ts, "timestamp", "us")
 
-    da_x = create_range_data_array(b, name, nix_type, desc, pts, "pipe timestamp", "us",
-                                   ts, "timestamp", "us")
-    da_y = create_range_data_array(b, name, nix_type, desc, pv, "pipe version", "",
-                                   ts, "timestamp", "us")
-    da_e = create_range_data_array(b, name, nix_type, desc, err, "error", "",
-                                   ts, "timestamp", "us")
-
-    for d in [da_x, da_y, da_e]:
-        group.data_arrays.append(d.id)
+        for d in [da_x, da_y, da_e]:
+            group.data_arrays.append(d.id)
 
 
 def write_tobii_accelerometer(b, group, tobii_data, tobii_offset):
@@ -394,26 +394,26 @@ def write_tobii_accelerometer(b, group, tobii_data, tobii_offset):
 
     if len(err) < 1:
         print("INFO/TOBII: no '%s' data found" % prop)
+    else:
+        coord = np.transpose(coord)
 
-    coord = np.transpose(coord)
+        desc = "The timestamp has been modified by an offset of -" + str(tobii_offset)
+        nix_type = "nix.tobii.property." + prop
+        name = "MEMS accelerometer"
 
-    desc = "The timestamp has been modified by an offset of -" + str(tobii_offset)
-    nix_type = "nix.tobii.property." + prop
-    name = "MEMS accelerometer"
+        # TODO conversion from deg/s to nix supported rad/s
+        # da.unit = "rad/s"
+        da_x = create_range_data_array(b, name, nix_type, desc, coord[0], "rotationX", "m/s^2",
+                                       ts, "timestamp", "us")
+        da_y = create_range_data_array(b, name, nix_type, desc, coord[1], "rotationY", "m/s^2",
+                                       ts, "timestamp", "us")
+        da_z = create_range_data_array(b, name, nix_type, desc, coord[2], "rotationZ", "m/s^2",
+                                       ts, "timestamp", "us")
+        da_e = create_range_data_array(b, name, nix_type, desc, err, "error", "",
+                                       ts, "timestamp", "us")
 
-    # TODO conversion from deg/s to nix supported rad/s
-    # da.unit = "rad/s"
-    da_x = create_range_data_array(b, name, nix_type, desc, coord[0], "rotationX", "m/s^2",
-                                   ts, "timestamp", "us")
-    da_y = create_range_data_array(b, name, nix_type, desc, coord[1], "rotationY", "m/s^2",
-                                   ts, "timestamp", "us")
-    da_z = create_range_data_array(b, name, nix_type, desc, coord[2], "rotationZ", "m/s^2",
-                                   ts, "timestamp", "us")
-    da_e = create_range_data_array(b, name, nix_type, desc, err, "error", "",
-                                   ts, "timestamp", "us")
-
-    for d in [da_x, da_y, da_z, da_e]:
-        group.data_arrays.append(d.id)
+        for d in [da_x, da_y, da_z, da_e]:
+            group.data_arrays.append(d.id)
 
 
 def write_tobii_gyroscope(b, group, tobii_data, tobii_offset):
@@ -432,26 +432,26 @@ def write_tobii_gyroscope(b, group, tobii_data, tobii_offset):
 
     if len(err) < 1:
         print("INFO/TOBII: no '%s' data found" % prop)
+    else:
+        coord = np.transpose(coord)
 
-    coord = np.transpose(coord)
+        desc = "The timestamp has been modified by an offset of -" + str(tobii_offset)
+        nix_type = "nix.tobii.property." + prop
+        name = "MEMS gyroscope"
 
-    desc = "The timestamp has been modified by an offset of -" + str(tobii_offset)
-    nix_type = "nix.tobii.property." + prop
-    name = "MEMS gyroscope"
+        # TODO conversion from deg/s to nix supported rad/s
+        # da.unit = "rad/s"
+        da_x = create_range_data_array(b, name, nix_type, desc, coord[0], "rotationX", "",
+                                       ts, "timestamp", "us")
+        da_y = create_range_data_array(b, name, nix_type, desc, coord[1], "rotationY", "",
+                                       ts, "timestamp", "us")
+        da_z = create_range_data_array(b, name, nix_type, desc, coord[2], "rotationZ", "",
+                                       ts, "timestamp", "us")
+        da_e = create_range_data_array(b, name, nix_type, desc, err, "error", "",
+                                       ts, "timestamp", "us")
 
-    # TODO conversion from deg/s to nix supported rad/s
-    # da.unit = "rad/s"
-    da_x = create_range_data_array(b, name, nix_type, desc, coord[0], "rotationX", "",
-                                   ts, "timestamp", "us")
-    da_y = create_range_data_array(b, name, nix_type, desc, coord[1], "rotationY", "",
-                                   ts, "timestamp", "us")
-    da_z = create_range_data_array(b, name, nix_type, desc, coord[2], "rotationZ", "",
-                                   ts, "timestamp", "us")
-    da_e = create_range_data_array(b, name, nix_type, desc, err, "error", "",
-                                   ts, "timestamp", "us")
-
-    for d in [da_x, da_y, da_z, da_e]:
-        group.data_arrays.append(d.id)
+        for d in [da_x, da_y, da_z, da_e]:
+            group.data_arrays.append(d.id)
 
 
 def write_tobii_gaze_pos_3d(b, group, tobii_data, tobii_offset):
@@ -470,24 +470,24 @@ def write_tobii_gaze_pos_3d(b, group, tobii_data, tobii_offset):
 
     if len(err) < 1:
         print("INFO/TOBII: no '%s' data found" % prop)
+    else:
+        gaze_pos = np.transpose(gaze_pos)
 
-    gaze_pos = np.transpose(gaze_pos)
+        desc = "The timestamp has been modified by an offset of -" + str(tobii_offset)
+        nix_type = "nix.tobii.property." + prop
+        name = "gaze position 3D"
 
-    desc = "The timestamp has been modified by an offset of -" + str(tobii_offset)
-    nix_type = "nix.tobii.property." + prop
-    name = "gaze position 3D"
+        da_x = create_range_data_array(b, name, nix_type, desc, gaze_pos[0], "positionX", "mm",
+                                       ts, "timestamp", "us")
+        da_y = create_range_data_array(b, name, nix_type, desc, gaze_pos[1], "positionY", "mm",
+                                       ts, "timestamp", "us")
+        da_z = create_range_data_array(b, name, nix_type, desc, gaze_pos[2], "positionZ", "mm",
+                                       ts, "timestamp", "us")
+        da_e = create_range_data_array(b, name, nix_type, desc, err, "error", "",
+                                       ts, "timestamp", "us")
 
-    da_x = create_range_data_array(b, name, nix_type, desc, gaze_pos[0], "positionX", "mm",
-                                   ts, "timestamp", "us")
-    da_y = create_range_data_array(b, name, nix_type, desc, gaze_pos[1], "positionY", "mm",
-                                   ts, "timestamp", "us")
-    da_z = create_range_data_array(b, name, nix_type, desc, gaze_pos[2], "positionZ", "mm",
-                                   ts, "timestamp", "us")
-    da_e = create_range_data_array(b, name, nix_type, desc, err, "error", "",
-                                   ts, "timestamp", "us")
-
-    for d in [da_x, da_y, da_z, da_e]:
-        group.data_arrays.append(d.id)
+        for d in [da_x, da_y, da_z, da_e]:
+            group.data_arrays.append(d.id)
 
 
 def write_tobii_gaze_pos(b, group, tobii_data, tobii_offset):
@@ -509,24 +509,24 @@ def write_tobii_gaze_pos(b, group, tobii_data, tobii_offset):
 
     if len(err) < 1:
         print("INFO/TOBII: no '%s' data found" % prop)
+    else:
+        gaze_pos = np.transpose(gaze_pos)
 
-    gaze_pos = np.transpose(gaze_pos)
+        desc = "The timestamp has been modified by an offset of -" + str(tobii_offset)
+        nix_type = "nix.tobii.property." + prop
+        name = "gaze position "
 
-    desc = "The timestamp has been modified by an offset of -" + str(tobii_offset)
-    nix_type = "nix.tobii.property." + prop
-    name = "gaze position "
+        da_x = create_range_data_array(b, name, nix_type, desc, gaze_pos[0], "X", "",
+                                       ts, "timestamp", "us")
+        da_y = create_range_data_array(b, name, nix_type, desc, gaze_pos[1], "Y", "",
+                                       ts, "timestamp", "us")
+        da_l = create_range_data_array(b, name, nix_type, desc, l_var, "l", "",
+                                       ts, "timestamp", "us")
+        da_e = create_range_data_array(b, name, nix_type, desc, err, "error", "",
+                                       ts, "timestamp", "us")
 
-    da_x = create_range_data_array(b, name, nix_type, desc, gaze_pos[0], "X", "",
-                                   ts, "timestamp", "us")
-    da_y = create_range_data_array(b, name, nix_type, desc, gaze_pos[1], "Y", "",
-                                   ts, "timestamp", "us")
-    da_l = create_range_data_array(b, name, nix_type, desc, l_var, "l", "",
-                                   ts, "timestamp", "us")
-    da_e = create_range_data_array(b, name, nix_type, desc, err, "error", "",
-                                   ts, "timestamp", "us")
-
-    for d in [da_x, da_y, da_l, da_e]:
-        group.data_arrays.append(d.id)
+        for d in [da_x, da_y, da_l, da_e]:
+            group.data_arrays.append(d.id)
 
 
 def write_tobii_gaze_dir(b, group, tobii_data, tobii_offset, eye):
@@ -545,24 +545,24 @@ def write_tobii_gaze_dir(b, group, tobii_data, tobii_offset, eye):
 
     if len(err) < 1:
         print("INFO/TOBII: no '%s' data found" % prop)
+    else:
+        coord = np.transpose(coord)
 
-    coord = np.transpose(coord)
+        desc = "The timestamp has been modified by an offset of -" + str(tobii_offset)
+        nix_type = "nix.tobii.property." + prop
+        name = "gaze direction " + eye
 
-    desc = "The timestamp has been modified by an offset of -" + str(tobii_offset)
-    nix_type = "nix.tobii.property." + prop
-    name = "gaze direction " + eye
+        da_x = create_range_data_array(b, name, nix_type, desc, coord[0], "coordinatesX", "",
+                                       ts, "timestamp", "us")
+        da_y = create_range_data_array(b, name, nix_type, desc, coord[1], "coordinatesY", "",
+                                       ts, "timestamp", "us")
+        da_z = create_range_data_array(b, name, nix_type, desc, coord[2], "coordinatesZ", "",
+                                       ts, "timestamp", "us")
+        da_e = create_range_data_array(b, name, nix_type, desc, err, "error", "",
+                                       ts, "timestamp", "us")
 
-    da_x = create_range_data_array(b, name, nix_type, desc, coord[0], "coordinatesX", "",
-                                   ts, "timestamp", "us")
-    da_y = create_range_data_array(b, name, nix_type, desc, coord[1], "coordinatesY", "",
-                                   ts, "timestamp", "us")
-    da_z = create_range_data_array(b, name, nix_type, desc, coord[2], "coordinatesZ", "",
-                                   ts, "timestamp", "us")
-    da_e = create_range_data_array(b, name, nix_type, desc, err, "error", "",
-                                   ts, "timestamp", "us")
-
-    for d in [da_x, da_y, da_z, da_e]:
-        group.data_arrays.append(d.id)
+        for d in [da_x, da_y, da_z, da_e]:
+            group.data_arrays.append(d.id)
 
 
 def write_tobii_pupil_center(b, group, tobii_data, tobii_offset, eye):
@@ -581,24 +581,24 @@ def write_tobii_pupil_center(b, group, tobii_data, tobii_offset, eye):
 
     if len(err) < 1:
         print("INFO/TOBII: no '%s' data found" % prop)
+    else:
+        coord = np.transpose(coord)
 
-    coord = np.transpose(coord)
+        desc = "The timestamp has been modified by an offset of -" + str(tobii_offset)
+        name = "pupil center " + eye
+        nix_type = "nix.tobii.property." + prop
 
-    desc = "The timestamp has been modified by an offset of -" + str(tobii_offset)
-    name = "pupil center " + eye
-    nix_type = "nix.tobii.property." + prop
+        da_x = create_range_data_array(b, name, nix_type, desc, coord[0], "coordinatesX", "mm",
+                                       ts, "timestamp", "us")
+        da_y = create_range_data_array(b, name, nix_type, desc, coord[1], "coordinatesY", "mm",
+                                       ts, "timestamp", "us")
+        da_z = create_range_data_array(b, name, nix_type, desc, coord[2], "coordinatesZ", "mm",
+                                       ts, "timestamp", "us")
+        da_e = create_range_data_array(b, name, nix_type, desc, err, "error", "",
+                                       ts, "timestamp", "us")
 
-    da_x = create_range_data_array(b, name, nix_type, desc, coord[0], "coordinatesX", "mm",
-                                   ts, "timestamp", "us")
-    da_y = create_range_data_array(b, name, nix_type, desc, coord[1], "coordinatesY", "mm",
-                                   ts, "timestamp", "us")
-    da_z = create_range_data_array(b, name, nix_type, desc, coord[2], "coordinatesZ", "mm",
-                                   ts, "timestamp", "us")
-    da_e = create_range_data_array(b, name, nix_type, desc, err, "error", "",
-                                   ts, "timestamp", "us")
-
-    for d in [da_x, da_y, da_z, da_e]:
-        group.data_arrays.append(d.id)
+        for d in [da_x, da_y, da_z, da_e]:
+            group.data_arrays.append(d.id)
 
 
 def write_tobii_pupil_diameter(b, group, tobii_data, tobii_offset, eye):
@@ -617,18 +617,18 @@ def write_tobii_pupil_diameter(b, group, tobii_data, tobii_offset, eye):
 
     if len(err) < 1:
         print("INFO/TOBII: no '%s' data found" % prop)
+    else:
+        desc = "The timestamp has been modified by an offset of -" + str(tobii_offset)
+        name = "pupil diameter " + eye
+        nix_type = "nix.tobii.property." + prop
 
-    desc = "The timestamp has been modified by an offset of -" + str(tobii_offset)
-    name = "pupil diameter " + eye
-    nix_type = "nix.tobii.property." + prop
+        da = create_range_data_array(b, name, nix_type, desc, diameter, "pupil diameter", "mm",
+                                     ts, "timestamp", "us")
+        da_e = create_range_data_array(b, name, nix_type, desc, err, "error", "",
+                                       ts, "timestamp", "us")
 
-    da = create_range_data_array(b, name, nix_type, desc, diameter, "pupil diameter", "mm",
-                                 ts, "timestamp", "us")
-    da_e = create_range_data_array(b, name, nix_type, desc, err, "error", "",
-                                   ts, "timestamp", "us")
-
-    for d in [da, da_e]:
-        group.data_arrays.append(d.id)
+        for d in [da, da_e]:
+            group.data_arrays.append(d.id)
 
 
 def load_data(filename):
