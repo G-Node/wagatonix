@@ -111,41 +111,48 @@ def save_events(block, trigger, group_eeg, group_tobii):
     corners = times[(states == 8) | (states == 10)]
     exp_start = times[(states == 4) | (states == 6)]
 
-    # handle corner position multi_tag
+    handle_multi_tags = []
 
-    corner_positions = block.create_data_array("corner_times", "nix.timestamps", data=corners)
-    corner_positions.label = "time"
-    corner_positions.unit = "s"
-    corner_positions.append_alias_range_dimension()
-    corner_events = block.create_multi_tag("corners", "nix.eeg.event", corner_positions)
-
-    exp_positions = block.create_data_array("experiment times", "nix.timestamps", data=exp_start)
-    exp_positions.label = "time"
-    exp_positions.unit = "s"
-    exp_positions.append_alias_range_dimension()
-
-    extents = np.ones(len(exp_start))
-    if len(extents) > 1:
-        extents[-1] = 100.
+    # handle corner position multi_tag, do not create empty data arrays
+    if len(corners) < 1:
+        print("WARNING/TAGS: No corner positions found, MultiTag not created.")
     else:
-        extents = [100]
-    exp_extents = block.create_data_array("experiment durations", "nix.extents", data=extents)
-    exp_extents.label = "time"
-    exp_extents.unit = "s"
-    exp_extents.append_alias_range_dimension()
+        corner_positions = block.create_data_array("corner_times", "nix.timestamps", data=corners)
+        corner_positions.label = "time"
+        corner_positions.unit = "s"
+        corner_positions.append_alias_range_dimension()
+        corner_events = block.create_multi_tag("corners", "nix.eeg.event", corner_positions)
 
-    exp_starts = block.create_multi_tag("experiment starts", "nix.eeg.event", exp_positions)
-    exp_starts.extents = exp_extents
+        handle_multi_tags.append(corner_events)
 
-    for da in group_eeg.data_arrays:
-        # print("INFO/TAGS: Applying multi_tags to EEG data '%s'" % da.name)
-        exp_starts.references.append(da)
-        corner_events.references.append(da)
+    # handle experiment start position multi_tag
+    if len(exp_start) < 1:
+        print("WARNING/TAGS: No experiment start positions found, MultiTag not created.")
+    else:
+        exp_positions = block.create_data_array("experiment times", "nix.timestamps", data=exp_start)
+        exp_positions.label = "time"
+        exp_positions.unit = "s"
+        exp_positions.append_alias_range_dimension()
 
-    for da in group_tobii.data_arrays:
-        # print("INFO/TAGS: Applying multi_tags to TOBII data '%s'" % da.name)
-        exp_starts.references.append(da)
-        corner_events.references.append(da)
+        extents = np.ones(len(exp_start))
+        if len(extents) > 1:
+            extents[-1] = 100.
+        else:
+            extents = [100]
+        exp_extents = block.create_data_array("experiment durations", "nix.extents", data=extents)
+        exp_extents.label = "time"
+        exp_extents.unit = "s"
+        exp_extents.append_alias_range_dimension()
+
+        exp_starts = block.create_multi_tag("experiment starts", "nix.eeg.event", exp_positions)
+        exp_starts.extents = exp_extents
+
+        handle_multi_tags.append(exp_starts)
+
+    for mt in handle_multi_tags:
+        print("INFO/TAGS: Applying MultiTag '%s'." % mt.name)
+        mt.references.extend(group_eeg.data_arrays)
+        mt.references.extend(group_tobii.data_arrays)
 
 
 def write_trigger_signal(block, trigger, time, da_group, offset):
