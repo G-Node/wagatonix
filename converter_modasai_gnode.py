@@ -171,8 +171,8 @@ def determine_offsets(time, trigger, tobii_data):
     """
     trigger_on_erg = np.logical_and(np.diff(trigger) > 1, np.diff(trigger) < 5)
     trigger_off_erg = np.logical_and(np.diff(trigger) < -1, np.diff(trigger) > -5)
-    # sync_trigger_tobii = filter(lambda y: y["dir"] == "out", filter(lambda x: x.__contains__("dir"), tobii_data))
-    sync_trigger_eeg = time[np.where(trigger_on_erg)[0][1]]
+    sync_trigger_tobii = list(filter(lambda y: y["dir"] == "out", filter(lambda x: x.__contains__("dir"), tobii_data)))[7]
+    sync_trigger_eeg = time[np.where(trigger_on_erg)[0][3]]
     return sync_trigger_eeg, sync_trigger_eeg
 
 
