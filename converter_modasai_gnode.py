@@ -220,19 +220,26 @@ def write_tobii_data(b, tobii_data, tobii_offset):
     write_tobii_gaze_dir(b, group, tobii_data, tobii_offset, "right")
 
     write_tobii_gaze_pos(b, group, tobii_data, tobii_offset)
+
     write_tobii_gaze_pos_3d(b, group, tobii_data, tobii_offset)
+
     write_tobii_gyroscope(b, group, tobii_data, tobii_offset)
+
     write_tobii_accelerometer(b, group, tobii_data, tobii_offset)
+
     write_tobii_pipe_ts(b, group, tobii_data, tobii_offset)
+
     write_tobii_video_ts(b, group, tobii_data, tobii_offset)
+
     write_tobii_eye_video_ts(b, group, tobii_data, tobii_offset)
+
     write_tobii_sync_port(b, group, tobii_data, tobii_offset)
 
     return group
 
 
-def create_range_data_array(b, name, type, desc, data, label, unit, range_data, range_label, range_unit):
-    da = b.create_data_array(name + " " + label, type, data=data)
+def create_range_data_array(b, name, nix_type, desc, data, label, unit, range_data, range_label, range_unit):
+    da = b.create_data_array(name + " " + label, nix_type, data=data)
     da.description = desc
     da.label = label
     if unit:
@@ -401,13 +408,11 @@ def write_tobii_accelerometer(b, group, tobii_data, tobii_offset):
         nix_type = "nix.tobii.property." + prop
         name = "MEMS accelerometer"
 
-        # TODO conversion from deg/s to nix supported rad/s
-        # da.unit = "rad/s"
-        da_x = create_range_data_array(b, name, nix_type, desc, coord[0], "rotationX", "m/s^2",
+        da_x = create_range_data_array(b, name, nix_type, desc, coord[0], "movementX", "m/s^2",
                                        ts, "timestamp", "us")
-        da_y = create_range_data_array(b, name, nix_type, desc, coord[1], "rotationY", "m/s^2",
+        da_y = create_range_data_array(b, name, nix_type, desc, coord[1], "movementY", "m/s^2",
                                        ts, "timestamp", "us")
-        da_z = create_range_data_array(b, name, nix_type, desc, coord[2], "rotationZ", "m/s^2",
+        da_z = create_range_data_array(b, name, nix_type, desc, coord[2], "movementZ", "m/s^2",
                                        ts, "timestamp", "us")
         da_e = create_range_data_array(b, name, nix_type, desc, err, "error", "",
                                        ts, "timestamp", "us")
