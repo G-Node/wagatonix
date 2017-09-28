@@ -213,10 +213,8 @@ def write_tobii_data(b, tobii_data, tobii_offset):
     da = write_tobii_pupil_center(b, tobii_data, tobii_offset, "left")
     da.extend(write_tobii_pupil_center(b, tobii_data, tobii_offset, "right"))
 
-    #da_left = write_tobii_pupil_diameter(b, tobii_data, tobii_offset, "left")
-    #group.data_arrays.append(da_left.id)
-    #da_right = write_tobii_pupil_diameter(b, tobii_data, tobii_offset, "right")
-    #group.data_arrays.append(da_right.id)
+    da.extend(write_tobii_pupil_diameter(b, tobii_data, tobii_offset, "left"))
+    da.extend(write_tobii_pupil_diameter(b, tobii_data, tobii_offset, "right"))
 
     da.extend(write_tobii_gaze_dir(b, tobii_data, tobii_offset, "left"))
     da.extend(write_tobii_gaze_dir(b, tobii_data, tobii_offset, "right"))
@@ -537,7 +535,7 @@ def write_tobii_gaze_dir(b, tobii_data, tobii_offset, eye):
                                    ts, "timestamp", "us")
     da_z = create_range_data_array(b, name, nix_type, desc, coord[2], "coordinatesZ", "",
                                    ts, "timestamp", "us")
-    da_e = create_range_data_array(b, name, nix_type, desc, coord[2], "error", "",
+    da_e = create_range_data_array(b, name, nix_type, desc, err, "error", "",
                                    ts, "timestamp", "us")
 
     return [da_x, da_y, da_z, da_e]
@@ -572,7 +570,7 @@ def write_tobii_pupil_center(b, tobii_data, tobii_offset, eye):
                                    ts, "timestamp", "us")
     da_z = create_range_data_array(b, name, nix_type, desc, coord[2], "coordinatesZ", "mm",
                                    ts, "timestamp", "us")
-    da_e = create_range_data_array(b, name, nix_type, desc, coord[2], "error", "",
+    da_e = create_range_data_array(b, name, nix_type, desc, err, "error", "",
                                    ts, "timestamp", "us")
 
     return [da_x, da_y, da_z, da_e]
@@ -584,29 +582,27 @@ def write_tobii_pupil_diameter(b, tobii_data, tobii_offset, eye):
     tobii_pc_data = sorted(filtered, key=operator.itemgetter("ts"))
 
     ts = []
-    combined = []
+    diameter = []
+    err = []
     for e in tobii_pc_data:
         # apply offset to timestamp
         ts.append(e["ts"] - tobii_offset)
-        combined.append([e[prop], e["s"]])
+        diameter.append(e[prop])
+        err.append(e["s"])
 
-    da = b.create_data_array("pupil diameter " + eye, "nix.tobii.property", data=combined)
-    da.label = "pupil diameter"
-    if len(combined) < 1:
+    if len(err) < 1:
         print("INFO/TOBII: no '%s' data found" % prop)
-        da.append_set_dimension()
-    else:
-        da.unit = "mm"
-        da.description = "The timestamp has been modified by an offset of -" + str(tobii_offset)
 
-        dim = da.append_range_dimension(ts)
-        dim.unit = "us"
-        dim.label = "timestamp"
+    desc = "The timestamp has been modified by an offset of -" + str(tobii_offset)
+    name = "pupil diameter " + eye
+    nix_type = "nix.tobii.property." + prop
 
-        dim = da.append_set_dimension()
-        dim.labels = ["diameter", "error"]
+    da = create_range_data_array(b, name, nix_type, desc, diameter, "pupil diameter", "mm",
+                                 ts, "timestamp", "us")
+    da_e = create_range_data_array(b, name, nix_type, desc, err, "error", "",
+                                   ts, "timestamp", "us")
 
-    return da
+    return [da, da_e]
 
 
 def load_data(filename):
