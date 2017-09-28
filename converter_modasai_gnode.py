@@ -110,8 +110,8 @@ def save_events(block, trigger, group_eeg, group_tobii):
     times = indices[0].astype(np.double) / 512
     corners = times[(states == 8) | (states == 10)]
     exp_start = times[(states == 4) | (states == 6)]
-    if len(exp_start) < 1:
-        print("WARNING/EEG: Did not find experiment start condition")
+
+    # handle corner position multi_tag
 
     corner_positions = block.create_data_array("corner_times", "nix.timestamps", data=corners)
     corner_positions.label = "time"
@@ -136,6 +136,7 @@ def save_events(block, trigger, group_eeg, group_tobii):
 
     exp_starts = block.create_multi_tag("experiment starts", "nix.eeg.event", exp_positions)
     exp_starts.extents = exp_extents
+
     for da in group_eeg.data_arrays:
         # print("INFO/TAGS: Applying multi_tags to EEG data '%s'" % da.name)
         exp_starts.references.append(da)
@@ -178,11 +179,11 @@ def determine_offsets(time, trigger, tobii_data):
     :return:
     """
     trigger_on_erg = np.logical_and(np.diff(trigger) > 1, np.diff(trigger) < 5)
-    trigger_off_erg = np.logical_and(np.diff(trigger) < -1, np.diff(trigger) > -5)
-    sync_trigger_tobii = list(filter(lambda y: y["dir"] == "out",
-                                     filter(lambda x: x.__contains__("dir"), tobii_data)))[7]
+    # trigger_off_erg = np.logical_and(np.diff(trigger) < -1, np.diff(trigger) > -5)
+    sync_trigger_tobii = list(filter(lambda y: y["dir"] == "out", filter(lambda x: x.__contains__("dir"), tobii_data)))
     sync_trigger_eeg = time[np.where(trigger_on_erg)[0][3]]
-    return sync_trigger_eeg, sync_trigger_eeg
+    # sync pulse must comes 10s after first pulse
+    return sync_trigger_eeg, sync_trigger_tobii[0]["ts"] + 10 * 10 ** 6
 
 
 def convert(time, trigger, data, parts, sr, tobii_data, metadatafile, eeg_offset, tobii_offset):
