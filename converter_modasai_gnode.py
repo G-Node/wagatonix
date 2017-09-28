@@ -167,22 +167,22 @@ def write_trigger_signal(block, trigger, time, da_group, offset):
 
 
 def determine_offsets(time, trigger, tobii_data):
-    """
-    Determines the offsets (ate the first trigger) in the eeg and in the tobii signal
+    '''
+    Detrmines the offsets (ate the first trigger) in the eeg and in the tobii signal
     assumes that the first 6 [0:5] trigger signals in the tobii  are pre sync pulses
      and takes the first sync pulse as reference.
      return time offset off the first sync pulse in the eeg (in second) and the corresponing point in the tobii (us)
     :param time: time vector of the eeg signal
     :param trigger: trigger signals in teh eeg
-    :param tobii_data: json formatted signal form the tobii
+    :param tobii_data: json fromatted signal form the tobii
     :return:
-    """
+    '''
     trigger_on_erg = np.logical_and(np.diff(trigger) > 1, np.diff(trigger) < 5)
-    trigger_off_erg = np.logical_and(np.diff(trigger) < -1, np.diff(trigger) > -5)
-    sync_trigger_tobii = list(filter(lambda y: y["dir"] == "out",
-                                     filter(lambda x: x.__contains__("dir"), tobii_data)))[7]
+    sync_trigger_tobii = filter(lambda y: y["dir"] == "out", filter(lambda x: x.__contains__("dir"), tobii_data))
     sync_trigger_eeg = time[np.where(trigger_on_erg)[0][3]]
-    return sync_trigger_eeg, sync_trigger_eeg
+    # sync pulse must comes 10s after first pulse
+    return sync_trigger_eeg, sync_trigger_tobii[0]+10*10**6
+
 
 
 def convert(time, trigger, data, parts, sr, tobii_data, metadatafile, eeg_offset, tobii_offset):
