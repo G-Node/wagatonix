@@ -42,7 +42,7 @@ def write_session_metadata(nixfile, block, metadatafile):
 
     prevcnt = 0
     for mdatrow in csv.reader(mdf):
-        print("---{0}".format(mdatrow))
+        # print("---{0}".format(mdatrow))
         for (cnt, mdat) in enumerate(mdatrow):
             if mdat != '':
                 # print("***{0}".format(mdat))
@@ -50,8 +50,8 @@ def write_session_metadata(nixfile, block, metadatafile):
                     break
                 
                 if len(mdatrow) > cnt + 1:
-                    print("{0}".format(len(mdatrow)))
-                    print("{0} {1} {2}".format(cnt, mdatrow, mdat))
+                    # print("{0}".format(len(mdatrow)))
+                    # print("{0} {1} {2}".format(cnt, mdatrow, mdat))
                     msecs[cnt][mdat] = mdatrow[cnt + 1]
                     break
                 else:
@@ -104,13 +104,14 @@ def write_channel_data(block, data, time, sr, offset):
     return group
 
 
-def save_events(block, trigger, group):
+def save_events(block, trigger, group_eeg, group_tobii):
     states = trigger[np.nonzero(np.diff(trigger))]
     indices = np.nonzero(np.diff(trigger))
     times = indices[0].astype(np.double) / 512
     corners = times[(states == 8) | (states == 10)]
     exp_start = times[(states == 4) | (states == 6)]
-    print("WARNING/EEG: Did not find experiment start condition")
+    if len(exp_start) < 1:
+        print("WARNING/EEG: Did not find experiment start condition")
 
     corner_positions = block.create_data_array("corner_times", "nix.timestamps", data=corners)
     corner_positions.label = "time"
@@ -135,7 +136,13 @@ def save_events(block, trigger, group):
 
     exp_starts = block.create_multi_tag("experiment starts", "nix.eeg.event", exp_positions)
     exp_starts.extents = exp_extents
-    for da in group.data_arrays:
+    for da in group_eeg.data_arrays:
+        print("INFO/TAGS: Applying multi_tags to EEG data '%s'" % da.name)
+        exp_starts.references.append(da)
+        corner_events.references.append(da)
+
+    for da in group_tobii.data_arrays:
+        print("INFO/TAGS: Applying multi_tags to TOBII data '%s'" % da.name)
         exp_starts.references.append(da)
         corner_events.references.append(da)
 
@@ -187,12 +194,14 @@ def convert(time, trigger, data, parts, sr, tobii_data, metadatafile, eeg_offset
     write_session_metadata(f, b, metadatafile)
 
     # TODO handle eeg offset
-    g = write_channel_data(b, data, time, sr, eeg_offset)
-    write_trigger_signal(b, trigger, time, g, eeg_offset)
-    save_events(b, trigger, g)
+    group_eeg = write_channel_data(b, data, time, sr, eeg_offset)
+    write_trigger_signal(b, trigger, time, group_eeg, eeg_offset)
 
     # handle tobii data
-    write_tobii_data(b, tobii_data, tobii_offset)
+    group_tobii = write_tobii_data(b, tobii_data, tobii_offset)
+
+    # apply multi_tags
+    save_events(b, trigger, group_eeg, group_tobii)
 
     f.flush()
     f.close()
