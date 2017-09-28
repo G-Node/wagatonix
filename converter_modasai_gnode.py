@@ -210,16 +210,16 @@ def convert(time, trigger, data, parts, sr, tobii_data, metadatafile, eeg_offset
 def write_tobii_data(b, tobii_data, tobii_offset):
     group = b.create_group("tobii data", "nix.tobii")
 
-    da = write_tobii_pupil_center(b, tobii_data, tobii_offset, "left")
-    da.extend(write_tobii_pupil_center(b, tobii_data, tobii_offset, "right"))
+    write_tobii_pupil_center(b, group, tobii_data, tobii_offset, "left")
+    write_tobii_pupil_center(b, group, tobii_data, tobii_offset, "right")
 
-    da.extend(write_tobii_pupil_diameter(b, tobii_data, tobii_offset, "left"))
-    da.extend(write_tobii_pupil_diameter(b, tobii_data, tobii_offset, "right"))
+    write_tobii_pupil_diameter(b, group, tobii_data, tobii_offset, "left")
+    write_tobii_pupil_diameter(b, group, tobii_data, tobii_offset, "right")
 
-    da.extend(write_tobii_gaze_dir(b, tobii_data, tobii_offset, "left"))
-    da.extend(write_tobii_gaze_dir(b, tobii_data, tobii_offset, "right"))
+    write_tobii_gaze_dir(b, group, tobii_data, tobii_offset, "left")
+    write_tobii_gaze_dir(b, group, tobii_data, tobii_offset, "right")
 
-    da.extend(write_tobii_gaze_pos(b, group, tobii_data, tobii_offset))
+    write_tobii_gaze_pos(b, group, tobii_data, tobii_offset)
     #write_tobii_gaze_pos_3d(b, group, tobii_data, tobii_offset)
     #write_tobii_gyroscope(b, group, tobii_data, tobii_offset)
     #write_tobii_accelerometer(b, group, tobii_data, tobii_offset)
@@ -227,9 +227,6 @@ def write_tobii_data(b, tobii_data, tobii_offset):
     #write_tobii_video_ts(b, group, tobii_data, tobii_offset)
     #write_tobii_eye_video_ts(b, group, tobii_data, tobii_offset)
     #write_tobii_sync_port(b, group, tobii_data, tobii_offset)
-
-    for d in da:
-        group.data_arrays.append(d.id)
 
     return group
 
@@ -474,7 +471,7 @@ def write_tobii_gaze_pos_3d(b, g, tobii_data, tobii_offset):
         g.data_arrays.append(da.id)
 
 
-def write_tobii_gaze_pos(b, g, tobii_data, tobii_offset):
+def write_tobii_gaze_pos(b, group, tobii_data, tobii_offset):
     prop = "gp"
     filtered = filter(lambda x: x.__contains__(prop), tobii_data)
     tobii_pc_data = sorted(filtered, key=operator.itemgetter("ts"))
@@ -509,10 +506,11 @@ def write_tobii_gaze_pos(b, g, tobii_data, tobii_offset):
     da_e = create_range_data_array(b, name, nix_type, desc, err, "error", "",
                                    ts, "timestamp", "us")
 
-    return [da_x, da_y, da_l, da_e]
+    for d in [da_x, da_y, da_l, da_e]:
+        group.data_arrays.append(d.id)
 
 
-def write_tobii_gaze_dir(b, tobii_data, tobii_offset, eye):
+def write_tobii_gaze_dir(b, group, tobii_data, tobii_offset, eye):
     prop = "gd"
     filtered = filter(lambda y: y["eye"] == eye, filter(lambda x: x.__contains__(prop), tobii_data))
     tobii_pc_data = sorted(filtered, key=operator.itemgetter("ts"))
@@ -544,10 +542,11 @@ def write_tobii_gaze_dir(b, tobii_data, tobii_offset, eye):
     da_e = create_range_data_array(b, name, nix_type, desc, err, "error", "",
                                    ts, "timestamp", "us")
 
-    return [da_x, da_y, da_z, da_e]
+    for d in [da_x, da_y, da_z, da_e]:
+        group.data_arrays.append(d.id)
 
 
-def write_tobii_pupil_center(b, tobii_data, tobii_offset, eye):
+def write_tobii_pupil_center(b, group, tobii_data, tobii_offset, eye):
     prop = "pc"
     filtered = filter(lambda y: y["eye"] == eye, filter(lambda x: x.__contains__(prop), tobii_data))
     tobii_pc_data = sorted(filtered, key=operator.itemgetter("ts"))
@@ -579,10 +578,11 @@ def write_tobii_pupil_center(b, tobii_data, tobii_offset, eye):
     da_e = create_range_data_array(b, name, nix_type, desc, err, "error", "",
                                    ts, "timestamp", "us")
 
-    return [da_x, da_y, da_z, da_e]
+    for d in [da_x, da_y, da_z, da_e]:
+        group.data_arrays.append(d.id)
 
 
-def write_tobii_pupil_diameter(b, tobii_data, tobii_offset, eye):
+def write_tobii_pupil_diameter(b, group, tobii_data, tobii_offset, eye):
     prop = "pd"
     filtered = filter(lambda y: y["eye"] == eye, filter(lambda x: x.__contains__(prop), tobii_data))
     tobii_pc_data = sorted(filtered, key=operator.itemgetter("ts"))
@@ -608,7 +608,8 @@ def write_tobii_pupil_diameter(b, tobii_data, tobii_offset, eye):
     da_e = create_range_data_array(b, name, nix_type, desc, err, "error", "",
                                    ts, "timestamp", "us")
 
-    return [da, da_e]
+    for d in [da, da_e]:
+        group.data_arrays.append(d.id)
 
 
 def load_data(filename):
