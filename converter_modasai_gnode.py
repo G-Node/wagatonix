@@ -676,6 +676,7 @@ def load_tobii_data(filename):
     :param filename:
     :return: json python object
     """
+    print("INFO/TOBII: Importing file '%s'" % filename)
     fp = open(filename)
     return [json.loads(e) for e in fp.readlines()]
 
